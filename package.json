@@ -4,5 +4,8 @@
     "build": "cd frontend && npm run build",
     "electron": "electron .",
     "start": "npm run build && npm run electron"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.9.6"
   }
 }

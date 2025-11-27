@@ -1,35 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {Routes, Route, BrowserRouter} from "react-router-dom";
+import Home from "./pages/Home";
+import Logo from "./components/logo.tsx";
+import StartOrContinue from "./pages/StartOrContinue.tsx";
+import UploadAllData from "./pages/UploadAllData.tsx";
+import HowToMeasure from "./pages/HowToMeasure.tsx";
+import ContinueOrUploadCurrentData from "./pages/ContinueOrUploadCurrentData.tsx";
+import UploadCurrentData from "./pages/UploadCurrentData.tsx";
+import MeasureGrid from "./pages/MeasureGrid.tsx";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Logo />
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/startOrContinue" element={<StartOrContinue />} />
+                <Route path="/uploadAllData" element={<UploadAllData />} />
+                <Route path="/howToMeasure" element={<HowToMeasure />} />
+                <Route path="/continueOrUpload" element={<ContinueOrUploadCurrentData />} />
+                <Route path="/uploadCurrentData" element={<UploadCurrentData />} />
+                <Route path="/measureGrid" element={<MeasureGrid />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
-
-export default App
