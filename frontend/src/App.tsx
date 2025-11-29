@@ -7,6 +7,7 @@ import HowToMeasure from "./pages/HowToMeasure.tsx";
 import ContinueOrUploadCurrentData from "./pages/ContinueOrUploadCurrentData.tsx";
 import UploadCurrentData from "./pages/UploadCurrentData.tsx";
 import MeasureGrid from "./pages/MeasureGrid.tsx";
+import FieldMeasurementInstructions from "./pages/FieldMeasurementInstructions.tsx";
 
 export default function App() {
     return (
@@ -20,6 +21,7 @@ export default function App() {
                 <Route path="/continueOrUpload" element={<ContinueOrUploadCurrentData />} />
                 <Route path="/uploadCurrentData" element={<UploadCurrentData />} />
                 <Route path="/measureGrid" element={<MeasureGrid />} />
+                <Route path="/fieldMeasuremntInstructions" element={<FieldMeasurementInstructions />} />
             </Routes>
         </BrowserRouter>
     );

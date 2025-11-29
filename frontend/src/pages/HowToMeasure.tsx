@@ -34,7 +34,7 @@ export default function HowToMeasure() {
 
             <div style={{ display: "flex", justifyContent: "center" }}>
                 <Button  variant="contained"
-                         component={Link} to="/startOrContinue"
+                         component={Link} to="/fieldMeasuremntInstructions"
                          sx={{
                              minWidth: "10rem",
                              maxWidth: "20rem",

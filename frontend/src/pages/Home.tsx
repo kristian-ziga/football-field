@@ -23,7 +23,6 @@ export default function Home() {
                     alignItems: "center",
                     gap: "1rem",
                     width: "100%",
-                    maxWidth: "1200px",
                 }}
             >
                 <Button
@@ -50,7 +49,7 @@ export default function Home() {
                     to="/uploadAllData"
                     sx={{
                         width: { xs: "90%", sm: "35vw" },
-                        height: { xs: "60px", sm: "35vh" },
+                        height: { xs: "15%", sm: "35vh" },
                         maxWidth: "400px",
                         fontSize: { xs: "1.5rem", sm: "2.5rem" },
                         whiteSpace: "normal",
