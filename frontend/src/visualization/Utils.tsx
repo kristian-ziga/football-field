@@ -1,54 +1,32 @@
 
-export function csvParser(event: React.ChangeEvent<HTMLInputElement>): Promise<number[][]> {
-    return new Promise((resolve, reject) => {
-        const file = event.target.files?.[0];
-        if (!file) {
-            reject(new Error("No file selected"));
+export function csvParser(text: string): number[][] {
+    const points: number[][] = [];
+    
+    const lines = text.split("\n");
+
+    lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        const parts = trimmed.split(",");
+        if (parts.length < 3) {
+            console.warn(`Line ${index + 1} skipped: not enough columns`);
+            console.warn(parts);
             return;
         }
 
-        const points: number[][] = [];
-        const reader = new FileReader();
+        const x = parseFloat(parts[0]);
+        const y = parseFloat(parts[1]);
+        const z = parseFloat(parts[2]);
 
-        reader.onload = () => {
-            try {
-                const text = reader.result as string;
-                const lines = text.split("\n");
+        if (isNaN(x) || isNaN(y) || isNaN(z)) {
+            console.warn(`Line ${index + 1} skipped: invalid number`);
+            return;
+        }
 
-                lines.forEach((line, index) => {
-                    const trimmed = line.trim();
-                    if (!trimmed) return;
-
-                    const parts = trimmed.split(",");
-                    if (parts.length < 4) {
-                        console.warn(`Line ${index + 1} skipped: not enough columns`);
-                        return;
-                    }
-
-                    const x = parseFloat(parts[1]);
-                    const y = parseFloat(parts[2]);
-                    const z = parseFloat(parts[3]);
-
-                    if (isNaN(x) || isNaN(y) || isNaN(z)) {
-                        console.warn(`Line ${index + 1} skipped: invalid number`);
-                        return;
-                    }
-
-                    points.push([x, y, z]);
-                });
-
-                resolve(points);
-            } catch (err) {
-                reject(new Error(`Failed to parse CSV: ${(err as Error).message}`));
-            }
-        };
-
-        reader.onerror = () => {
-            reject(new Error("Error reading file"));
-        };
-
-        reader.readAsText(file);
+        points.push([x, y, z]);
     });
+    return points;
 }
 
 export function transformPoints(points: number[][]) {
