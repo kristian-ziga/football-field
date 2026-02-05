@@ -13,7 +13,7 @@ export default function FieldMeasurementInstructions() {
     }, []);
 
     const handleNext = () => {
-        if (ord >= 32) {
+        if (ord >= 33) {
             navigate("/continueOrUpload"); // where to go after 25
             return;
         }
@@ -38,10 +38,12 @@ export default function FieldMeasurementInstructions() {
             <div style={{display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center"}}>
                 <div style={{textAlign: "center", fontSize: "clamp(1.2rem, 8vw, 3rem)",}}>
                     {ord === 0
-                        ? "Total station inside middle circle - NOT on the lines"
+                        ? "Put total station somewhere along the red line"
                         : ord === 1
                             ? "Setup X axis on total station according to map"
-                            : "Measure points according to map"}
+                            :  ord === 2
+                                ? "The order in which points must be measured"
+                                : "Measure points according to map"}
                 </div>
                 <div style={{ display: "flex", justifyContent: "center", maxWidth: window.innerWidth < 850 ? "100vw" : "75vw"}}>
                     <FootballField ord={ord}/>

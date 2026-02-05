@@ -4,9 +4,7 @@ export default function FootballField({ ord }: { ord: number }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const spots = [
-        [0.55, 0.45],
-        [0.115, 0.5],
-
+        
         [0, 1],
         [0, 0.75],
         [0, 0.6],
@@ -166,21 +164,79 @@ export default function FootballField({ ord }: { ord: number }) {
             return;
         }
 
+        if (ord === 0) {
+            ctx.beginPath();
+            ctx.strokeStyle = "#b40f09";
+            ctx.lineWidth = 10;
+            ctx.moveTo(xMove * 2, height + yMove * 2);
+            ctx.lineTo(width, height + yMove * 2);
+            ctx.stroke();
+            return;
+        }
+        if (ord === 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = "#b40f09";
+            ctx.lineWidth = 10;
+            ctx.moveTo(xMove, yMove + height / 2);
+            ctx.lineTo(xMove + width, yMove + height / 2);
+            ctx.stroke();
+            return;
+        }
+        if (ord === 2) {
+            for (let index = 0; index < spots.length; index++) {
+                ctx.fillStyle = "#b40f09";
+                const r = Math.min(width, height) * 0.035;
+                ctx.beginPath();
+                const spot = spots[index];
+                let x = width * spot[0];
+                let y = height * spot[1];    
+                if ((index > -1 && index < 6) || index === 24 || index === 23) {
+                    x += lineWidth/2;
+                } else if ((index > 24 && index < 31) || index === 6 || index === 7) {
+                    x -= lineWidth/2;
+                }
+
+                if (index === 0 || index === 13 || index === 25) {
+                    y = y - lineWidth / 2;
+                } else if (index === 5 || index === 17 || index === 30) {
+                    y = y + lineWidth / 2;
+                }
+                
+                const cx = xMove + x;
+                const cy = yMove + y;
+
+                ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+                ctx.fill();
+
+                ctx.fillStyle = "white";
+                ctx.font = `${r}px Arial`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(index.toString(), cx, cy);
+            }
+            return;
+        }
+
         ctx.fillStyle = "#b40f09";
         const r = Math.min(width, height) * 0.035;
         ctx.beginPath();
-        let x = width * spots[ord][0];
-        if ((ord > 1 && ord < 8) || ord === 26 || ord === 25) {
+        const spot = spots[ord - 3];
+        if (!spot) return;
+        let x = width * spot[0];
+        let y = height * spot[1];        
+
+        if ((ord > 2 && ord < 9) || ord === 27 || ord === 26) {
             x += lineWidth/2;
-        } else if ((ord > 26 && ord < 33) || ord === 8 || ord === 9) {
+        } else if ((ord > 27 && ord < 34) || ord === 9 || ord === 10) {
             x -= lineWidth/2;
         }
-        let y = height * spots[ord][1];
-        if (ord === 2 || ord === 15 || ord === 27) {
+
+        if (ord === 3 || ord === 16 || ord === 28) {
             y = y - lineWidth / 2;
-        } else if (ord === 7 || ord === 19 || ord === 32) {
+        } else if (ord === 8 || ord === 20 || ord === 33) {
             y = y + lineWidth / 2;
         }
+
         ctx.arc(xMove + x, yMove + y, r, 0, 2*Math.PI);
         ctx.fill();
     }, [ord]);
