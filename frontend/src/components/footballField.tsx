@@ -209,7 +209,7 @@ export default function FootballField({ ord }: { ord: number }) {
                 ctx.fill();
 
                 ctx.fillStyle = "white";
-                ctx.font = `${r}px Arial`;
+                ctx.font = `${r * 1.2}px sans-serif`;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(index.toString(), cx, cy);
