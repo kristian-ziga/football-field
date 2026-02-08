@@ -7,10 +7,10 @@ interface StoredFile {
 
 interface AppStorage {
     mainPointsFile: StoredFile | null;
-    otherPointsFiles: StoredFile[];
+    secondaryPointsFile: StoredFile | null;
     points: number[][];
     addFile: (file: StoredFile, isMain?: boolean) => void;
-    removeFile: (index: number) => void;
+    removeFile: (isMain?: boolean) => void;
     setList: (list: number[][]) => void;
 }
 
@@ -22,8 +22,8 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return saved ? JSON.parse(saved) : null;
     });
 
-    const [otherPointsFiles, setOtherPointsFiles] = useState<StoredFile[]>(() => {
-        const saved = localStorage.getItem("app_otherPointsFiles");
+    const [secondaryPointsFile, setSecondaryPointsFile] = useState<StoredFile | null>(() => {
+        const saved = localStorage.getItem("app_secondaryPointsFile");
         return saved ? JSON.parse(saved) : [];
     });
 
@@ -37,8 +37,8 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }, [mainPointsFile]);
 
     useEffect(() => {
-        localStorage.setItem("app_otherPointsFiles", JSON.stringify(otherPointsFiles));
-    }, [otherPointsFiles]);
+        localStorage.setItem("app_secondaryPointsFile", JSON.stringify(secondaryPointsFile));
+    }, [secondaryPointsFile]);
 
     useEffect(() => {
         localStorage.setItem("app_points", JSON.stringify(points));
@@ -48,15 +48,16 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (isMain) {
             setMainPointsFile(file);
         } else {
-            setOtherPointsFiles((prev) => {
-                if (prev.length >= 5) return prev;
-                return [...prev, file];
-            });
+            setSecondaryPointsFile(file);
         }
     };
 
-    const removeFile = (index: number) => {
-        setOtherPointsFiles((prev) => prev.filter((_, i) => i !== index));
+    const removeFile = (isMain = true) => {
+        if (isMain) {
+            setMainPointsFile(null);
+        } else {
+            setSecondaryPointsFile(null);
+        }
     };
 
     const setList = (newPoints: number[][]) => {
@@ -64,7 +65,7 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     return (
-        <AppStorageContext.Provider value={{ mainPointsFile, otherPointsFiles, points, addFile, removeFile, setList }}>
+        <AppStorageContext.Provider value={{ mainPointsFile, secondaryPointsFile, points, addFile, removeFile, setList }}>
             {children}
         </AppStorageContext.Provider>
     );
