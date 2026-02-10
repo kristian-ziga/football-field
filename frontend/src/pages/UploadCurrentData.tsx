@@ -1,12 +1,9 @@
 import { Button } from "@mui/material";
 import DragAndDrop from "../components/dragAndDrop";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import PopUp from "../components/popUp";
 
 export default function UploadCurrentData() {
     const navigate = useNavigate();
-     const [error, setError] = useState<Error | null>(null);
 
     const handleNext = () => {
         navigate("/measureGrid"); 
@@ -30,7 +27,7 @@ export default function UploadCurrentData() {
                     Upload current data
                 </div>
                 <div style={{ display: "flex", justifyContent: "center", maxWidth: window.innerWidth < 850 ? "100vw" : "75vw"}}>
-                    <DragAndDrop onError={setError}/>
+                    <DragAndDrop isMain={true}/>
                 </div>
             </div>
             <div  style={{ display: "flex", justifyContent: "center", flexDirection: "row", gap: "clamp(2rem, 35vw, 40rem)", maxHeight: "5vh"}}>
@@ -63,13 +60,6 @@ export default function UploadCurrentData() {
                     NEXT
                 </Button>
             </div>
-            {error && (
-                <PopUp
-                    text={error.message}
-                    pathFrom="/uploadCurrentData"
-                    pathFromText="Try again"
-                />
-            )}
         </div>
     )
 }

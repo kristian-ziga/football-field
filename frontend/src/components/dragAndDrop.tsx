@@ -1,23 +1,78 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useAppStorage } from "../visualization/StorageProvider";
+import PopUp from "./popUp";
+
+
+export function csvParser(text: string): number[][] {
+    const points: number[][] = [];
+    
+    const lines = text.split("\n");
+
+    lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        const parts = trimmed.split(",");
+        if (parts.length < 3) {
+            throw new Error(`Line ${index + 1} skipped: not enough columns`);
+        }
+
+        const x = parseFloat(parts[0]);
+        const y = parseFloat(parts[1]);
+        const z = parseFloat(parts[2]);
+
+        if (isNaN(x) || isNaN(y) || isNaN(z)) {
+            throw new Error(`Line ${index + 1} skipped: invalid number`);
+        }
+
+        points.push([x, y, z]);
+    });
+    return points;
+}
+
+export function transformPoints(points: number[][]) {
+    const transformedPoints = [];
+
+    const diffX = points[15][0];
+    const diffY = points[15][1];
+    const diffZ = points[15][2];
+
+    points.forEach(point => {
+        const [x, y, z] = point;
+        transformedPoints.push([x - diffX, y - diffY, z - diffZ])
+    })
+}
 
 type DragAndDropProps = {
-    onError?: (err: Error) => void;
+    isMain: boolean;
 };
 
-export default function DragAndDrop({ onError }: DragAndDropProps) {
-    const { addFile, removeFile, mainPointsFile } = useAppStorage();
+export default function DragAndDrop({ isMain }: DragAndDropProps) {
+    const { addFile, removeFile, mainPointsFile, secondaryPointsFile ,setPoints } = useAppStorage();
+    const [open, setOpen] = useState(false);
+    const [text, setText] = useState('');
 
-    const handleFile = async (file: File) => {
-         try {
+    const handleFile = async (file: File, isMain: boolean) => {
+        try {
             if (!file.name.toLowerCase().endsWith(".csv")) {
-                throw new Error("Only CSV files are allowed.");
+                setText("Only CSV files are allowed");
+                setOpen(true);
+                return;
             }
             const content = await file.text();
-            addFile({ name: file.name, content }, true);
+            const pointsToAdd = csvParser(content)
+            
+            if (isMain && pointsToAdd.length < 31) {
+                setText("CSV file does not have all needed main points.");
+                setOpen(true);
+                return;
+            }
+            addFile({ name: file.name, content }, isMain);
+            setPoints(pointsToAdd, isMain)
         } catch (err) {
-            if (onError && err instanceof Error) {
-                onError(err);
+            if (err instanceof Error){
+                setText(err.message)
+                setOpen(true)
             }
         }
     };
@@ -25,17 +80,21 @@ export default function DragAndDrop({ onError }: DragAndDropProps) {
     const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         const file = e.dataTransfer.files[0];
-        if (file) handleFile(file);
+        if (file) handleFile(file, isMain);
     }, []);
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) handleFile(file);
+        if (file) handleFile(file, isMain);
     };
 
     const removeMainFile = () => {
         removeFile(true);
     };
+
+    const removeSecondaryFile = () => {
+        removeFile(false);
+    }
 
     return (
         <div>
@@ -53,22 +112,44 @@ export default function DragAndDrop({ onError }: DragAndDropProps) {
                     fontSize: "clamp(0.8rem, 6vw, 2rem)"
                 }}
             >
-                {mainPointsFile ? (
-                    <>File name: {mainPointsFile.name} 
-                    <button onClick={removeMainFile} 
-                        style={{
-                            marginBottom: "2px",
-                            background: "transparent",
-                            border: "none",
-                            fontSize: "1.2rem",
-                            cursor: "pointer",
-                            color: "white",
-                        }}>×
-                    </button></>
+                {isMain && mainPointsFile ? (
+                    <>
+                        File name: {mainPointsFile.name}
+                        <button
+                            onClick={removeMainFile}
+                            style={{
+                                marginBottom: "2px",
+                                background: "transparent",
+                                border: "none",
+                                fontSize: "1.2rem",
+                                cursor: "pointer",
+                                color: "white",
+                            }}
+                        >
+                            ×
+                        </button>
+                    </>
+                ) : !isMain && secondaryPointsFile ? (
+                    <>
+                        File name: {secondaryPointsFile.name}
+                        <button
+                            onClick={removeSecondaryFile}
+                            style={{
+                                marginBottom: "2px",
+                                background: "transparent",
+                                border: "none",
+                                fontSize: "1.2rem",
+                                cursor: "pointer",
+                                color: "white",
+                            }}
+                        >
+                            ×
+                        </button>
+                    </>
                 ) : (
                     <>
                         <span>
-                            Drag & drop a CSV file here or{" "}
+                            Drag & drop a {isMain ? "MAIN " : "SECONDARY "}csv file here or{" "}
                             <label
                                 htmlFor="fileInput"
                                 style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
@@ -87,6 +168,12 @@ export default function DragAndDrop({ onError }: DragAndDropProps) {
                     id="fileInput"
                 />
             </div>
+            <PopUp
+                text={text}
+                buttonText="OK"
+                open={open}
+                onClose={() => setOpen(false)}
+            />
         </div>
     );
 }

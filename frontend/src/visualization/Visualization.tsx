@@ -2,7 +2,6 @@ import { useState } from "react";
 import ControlsPanel from "./ControlPanel";
 import SceneRenderer from "./SceneRenderer";
 import { useAppStorage } from "./StorageProvider";
-import { csvParser } from "./Utils";
 
 export default function Visualization() {
     const [zMultiplier, setZMultiplier] = useState(15);
@@ -16,22 +15,9 @@ export default function Visualization() {
     const [showPoints, setShowPoints] = useState(false);
     const [showHeatMap, setShowHeatMap] = useState(false);
 
-    const { addFile, setList, mainPointsFile, points } = useAppStorage();
+    const { mainPoints, secondaryPoints } = useAppStorage();
 
-    fetch("/ZS_NFŠ_meranie_01-12-2025_LOKAL_MM.csv")
-    .then(res => res.text())
-    .then(text => {
-        addFile({ name: "test.csv", content: text }, true);
-
-        // optional: parse points immediately
-        const points = csvParser(text);
-        setList(points);
-    })
-    .catch(err => console.error("CSV load failed:", err));
-
-    
-
-    const allPoints = points;
+    const allPoints = [...mainPoints, ...secondaryPoints];
 
 
     const line_order: number[][] = [
