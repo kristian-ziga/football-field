@@ -10,6 +10,7 @@ import MeasureGrid from "./pages/MeasureGrid.tsx";
 import FieldMeasurementInstructions from "./pages/FieldMeasurementInstructions.tsx";
 import { AppStorageProvider } from "./visualization/StorageProvider.tsx";
 import Visualization from "./visualization/Visualization.tsx";
+import MeasurementValidation from "./pages/MeasurementValidation.tsx";
 
 export default function App() {
     return (
@@ -26,6 +27,7 @@ export default function App() {
                     <Route path="/measureGrid" element={<MeasureGrid />} />
                     <Route path="/fieldMeasuremntInstructions" element={<FieldMeasurementInstructions />} />
                     <Route path="/visualization" element={<Visualization />} />
+                    <Route path="/measurementValidation" element={<MeasurementValidation />} />
                 </Routes>
             </BrowserRouter>
         </AppStorageProvider>

@@ -11,9 +11,9 @@ interface AppStorage {
     mainPoints: number[][];
     secondaryPoints: number[][];
 
-    addFile: (file: StoredFile, isMain?: boolean) => void;
-    removeFile: (isMain?: boolean) => void;
-    setPoints: (list: number[][], isMain?: boolean) => void;
+    addFile: (file: StoredFile, isMain: boolean) => void;
+    removeFile: (isMain: boolean) => void;
+    setPoints: (list: number[][], isMain: boolean) => void;
 }
 
 const AppStorageContext = createContext<AppStorage | null>(null);
@@ -55,7 +55,7 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         localStorage.setItem("app_secondaryPoints", JSON.stringify(secondaryPoints));
     }, [secondaryPoints]);
 
-    const addFile = (file: StoredFile, isMain = false) => {
+    const addFile = (file: StoredFile, isMain: boolean) => {
         if (isMain) {
             setMainPointsFile(file);
         } else {
@@ -63,15 +63,17 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
     };
 
-    const removeFile = (isMain = true) => {
+    const removeFile = (isMain: boolean) => {
         if (isMain) {
             setMainPointsFile(null);
+            setPoints([], true)
         } else {
             setSecondaryPointsFile(null);
+            setPoints([], false)
         }
     };
 
-    const setPoints = (newPoints: number[][], isMain = true) => {
+    const setPoints = (newPoints: number[][], isMain: boolean) => {
         if (isMain) {
             setMainPoints(newPoints);
         } else {

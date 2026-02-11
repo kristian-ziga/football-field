@@ -1,19 +1,19 @@
-import { Button } from "@mui/material";
-import DragAndDrop from "../components/dragAndDrop";
 import { useNavigate } from "react-router-dom";
-import { useAppStorage } from "../visualization/StorageProvider";
+//import { useAppStorage } from "../visualization/StorageProvider";
+import { Button } from "@mui/material";
 
-export default function UploadAllData() {
-    const { mainPoints, mainPointsFile } = useAppStorage();
+
+export default function MeasurementValidation() {
+    //const { mainPoints } = useAppStorage();
     const navigate = useNavigate();
 
     const handleNext = () => {
-        navigate("/visualization"); 
+        navigate("/measurementValidation"); 
         return;
     };
 
     const handleBack = () => {
-        navigate("/home"); 
+        navigate("/uploadAllData"); 
         return;
     };
 
@@ -28,15 +28,7 @@ export default function UploadAllData() {
                 <div style={{textAlign: "center", fontSize: "clamp(1.2rem, 8vw, 3rem)",}}>
                     Upload all data
                 </div>
-                <div>
-                    <div style={{ display: "flex", justifyContent: "center", maxWidth: window.innerWidth < 850 ? "100vw" : "75vw"}}>
-                        <DragAndDrop isMain={true}/>
-                    </div>
-                    <br/>
-                    <div style={{ display: "flex", justifyContent: "center", maxWidth: window.innerWidth < 850 ? "100vw" : "75vw"}}>
-                        <DragAndDrop isMain={false}/>
-                    </div>
-                </div>
+                
             </div>
             <div  style={{ display: "flex", justifyContent: "center", flexDirection: "row", gap: "clamp(2rem, 35vw, 40rem)", maxHeight: "5vh"}}>
                 <Button  
@@ -56,10 +48,9 @@ export default function UploadAllData() {
                 </Button>
                 <Button 
                     variant="contained"
-                    disabled={mainPoints.length < 31 && !mainPointsFile}
                     onClick={handleNext}
                     sx={{
-                        width: "clamp(10rem, 20vw, 20rem)",
+                        width: "clamp(7rem, 15vw, 20rem)",
                         height: "clamp(2rem, 6vh, 10rem)",
                         padding: "1rem",
                         fontSize: "clamp(1.2rem, 8vw, 2.5rem)",

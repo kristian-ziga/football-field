@@ -51,6 +51,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
     const { addFile, removeFile, mainPointsFile, secondaryPointsFile ,setPoints } = useAppStorage();
     const [open, setOpen] = useState(false);
     const [text, setText] = useState('');
+    const inputId = isMain ? "fileInputMain" : "fileInputSecondary";
 
     const handleFile = async (file: File, isMain: boolean) => {
         try {
@@ -86,6 +87,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) handleFile(file, isMain);
+        e.target.value = "";
     };
 
     const removeMainFile = () => {
@@ -119,11 +121,12 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                             onClick={removeMainFile}
                             style={{
                                 marginBottom: "2px",
+                                marginLeft: "3px",
                                 background: "transparent",
                                 border: "none",
-                                fontSize: "1.2rem",
+                                fontSize: "2rem",
                                 cursor: "pointer",
-                                color: "white",
+                                color: "black",
                             }}
                         >
                             ×
@@ -136,11 +139,12 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                             onClick={removeSecondaryFile}
                             style={{
                                 marginBottom: "2px",
+                                marginLeft: "3px",
                                 background: "transparent",
                                 border: "none",
-                                fontSize: "1.2rem",
+                                fontSize: "2rem",
                                 cursor: "pointer",
-                                color: "white",
+                                color: "black",
                             }}
                         >
                             ×
@@ -151,7 +155,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                         <span>
                             Drag & drop a {isMain ? "MAIN " : "SECONDARY "}csv file here or{" "}
                             <label
-                                htmlFor="fileInput"
+                                htmlFor={inputId}
                                 style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
                             >
                                 click
@@ -165,7 +169,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                     accept=".csv"
                     onChange={onInputChange}
                     style={{ display: "none" }}
-                    id="fileInput"
+                    id={inputId}
                 />
             </div>
             <PopUp

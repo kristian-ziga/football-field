@@ -1,4 +1,6 @@
+import { Button } from "@mui/material";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 
 interface ControlsPanelProps {
@@ -86,47 +88,62 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
         </label>
         <br />
         <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", marginLeft: "15px", marginRight: "15px"}}>
-        <div>
-            <label>
-            <input type="checkbox" checked={showMeshes} onChange={e => { setShowMeshes(e.target.checked); setShowHeatMap(false); }} />
-            Show Grass
-            </label><br />
-            <label>
-            <input type="checkbox" checked={showLines} onChange={e => setShowLines(e.target.checked)} />
-            Show Lines
-            </label><br />
-            <label>
-            <input type="checkbox" checked={showHeatMap} onChange={e => { setShowHeatMap(e.target.checked); setShowMeshes(false); }} />
-            Show HeatMap
-            </label><br />
-            <label>
-            <input type="checkbox" checked={showPlanes} onChange={e => setShowPlanes(e.target.checked)} />
-            Show Planes
-            </label><br />
-            <label>
-            <input type="checkbox" checked={showPoints} onChange={e => setShowPoints(e.target.checked)} />
-            Show Points
-            </label>
+            <div>
+                <label>
+                <input type="checkbox" checked={showMeshes} onChange={e => { setShowMeshes(e.target.checked); setShowHeatMap(false); }} />
+                Show Grass
+                </label><br />
+                <label>
+                <input type="checkbox" checked={showLines} onChange={e => setShowLines(e.target.checked)} />
+                Show Lines
+                </label><br />
+                <label>
+                <input type="checkbox" checked={showHeatMap} onChange={e => { setShowHeatMap(e.target.checked); setShowMeshes(false); }} />
+                Show HeatMap
+                </label><br />
+                <label>
+                <input type="checkbox" checked={showPlanes} onChange={e => setShowPlanes(e.target.checked)} />
+                Show Planes
+                </label><br />
+                <label>
+                <input type="checkbox" checked={showPoints} onChange={e => setShowPoints(e.target.checked)} />
+                Show Points
+                </label>
+            </div>
+            <div
+                style={{
+                width: "50px",
+                height: "120px",
+                background: "linear-gradient(to top," +
+                    Array.from({ length: 20 }, (_, i) => {
+                    const t = i / 19;
+                    const hue = 0.44 - 0.37 * t;
+                    const light = 0.10 + 0.5 * t;
+                    const color = new THREE.Color();
+                    color.setHSL(hue, 0.75, light);
+                    return `#${color.getHexString()} ${Math.round(t * 100)}%`;
+                    }).join(",") +
+                ")",
+                border: "2px solid #fff",
+                borderRadius: "10px",
+                }}
+            />
         </div>
-        <div
-            style={{
-            width: "50px",
-            height: "120px",
-            background: "linear-gradient(to top," +
-                Array.from({ length: 20 }, (_, i) => {
-                const t = i / 19;
-                const hue = 0.44 - 0.37 * t;
-                const light = 0.10 + 0.5 * t;
-                const color = new THREE.Color();
-                color.setHSL(hue, 0.75, light);
-                return `#${color.getHexString()} ${Math.round(t * 100)}%`;
-                }).join(",") +
-            ")",
-            border: "2px solid #fff",
-            borderRadius: "10px",
-            }}
-        />
-        </div>
+        <Button 
+            variant="contained"
+            onClick={() => useNavigate()("/visualization")}
+            sx={{
+                width: "clamp(7rem, 15vw, 20rem)",
+                height: "clamp(2rem, 6vh, 10rem)",
+                padding: "1rem",
+                fontSize: "clamp(1.2rem, 8vw, 2.5rem)",
+                whiteSpace: "normal",
+                textAlign: "center",
+                border: "1px solid",
+                justifyContent: "center",
+            }}>
+            NEXT
+        </Button>
     </div>
 );
 
