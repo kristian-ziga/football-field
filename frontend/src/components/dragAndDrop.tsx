@@ -3,7 +3,7 @@ import { useAppStorage } from "../visualization/StorageProvider";
 import PopUp from "./popUp";
 
 
-export function csvParser(text: string): number[][] {
+export function txtParser(text: string): number[][] {
     const points: number[][] = [];
     
     const lines = text.split("\n");
@@ -12,14 +12,15 @@ export function csvParser(text: string): number[][] {
         const trimmed = line.trim();
         if (!trimmed) return;
 
-        const parts = trimmed.split(",");
-        if (parts.length < 3) {
+        const parts = trimmed.split(/\s+/);
+
+        if (parts.length < 4) {
             throw new Error(`Line ${index + 1} skipped: not enough columns`);
         }
 
-        const x = parseFloat(parts[0]);
-        const y = parseFloat(parts[1]);
-        const z = parseFloat(parts[2]);
+        const x = parseFloat(parts[1]);
+        const y = parseFloat(parts[2]);
+        const z = parseFloat(parts[3]);
 
         if (isNaN(x) || isNaN(y) || isNaN(z)) {
             throw new Error(`Line ${index + 1} skipped: invalid number`);
@@ -27,11 +28,17 @@ export function csvParser(text: string): number[][] {
 
         points.push([x, y, z]);
     });
-    return points;
+
+    if (points.length < 31)
+        return points
+
+    return transformPoints(points);
 }
 
 export function transformPoints(points: number[][]) {
-    const transformedPoints = [];
+    const transformedPoints1: number[][] = [];
+    const transformedPoints2: number[][] = [];
+    // const transformedPoints3: number[][] = [];
 
     const diffX = points[15][0];
     const diffY = points[15][1];
@@ -39,8 +46,16 @@ export function transformPoints(points: number[][]) {
 
     points.forEach(point => {
         const [x, y, z] = point;
-        transformedPoints.push([x - diffX, y - diffY, z - diffZ])
+        transformedPoints1.push([x - diffX, y - diffY, z - diffZ])
     })
+
+    const middle_point_height = transformedPoints1[15][2];
+    transformedPoints1.forEach(point => {
+        const [x, y, z] = point;
+        transformedPoints2.push([x, y, z - middle_point_height])
+    })
+
+    return transformedPoints2;
 }
 
 type DragAndDropProps = {
@@ -55,16 +70,16 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
 
     const handleFile = async (file: File, isMain: boolean) => {
         try {
-            if (!file.name.toLowerCase().endsWith(".csv")) {
-                setText("Only CSV files are allowed");
+            if (!file.name.toLowerCase().endsWith(".txt")) {
+                setText("Only TXT files are allowed");
                 setOpen(true);
                 return;
             }
             const content = await file.text();
-            const pointsToAdd = csvParser(content)
+            const pointsToAdd = txtParser(content)
             
             if (isMain && pointsToAdd.length < 31) {
-                setText("CSV file does not have all needed main points.");
+                setText("TXT file does not have all needed main points.");
                 setOpen(true);
                 return;
             }
@@ -153,7 +168,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                 ) : (
                     <>
                         <span>
-                            Drag & drop a {isMain ? "MAIN " : "SECONDARY "}csv file here or{" "}
+                            Drag & drop a {isMain ? "MAIN " : "SECONDARY "}txt file here or{" "}
                             <label
                                 htmlFor={inputId}
                                 style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
@@ -166,7 +181,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                 )}
                 <input
                     type="file"
-                    accept=".csv"
+                    accept=".txt"
                     onChange={onInputChange}
                     style={{ display: "none" }}
                     id={inputId}

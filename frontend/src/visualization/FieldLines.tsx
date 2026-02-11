@@ -16,7 +16,7 @@ export function createLine(
     }
 
     const width = 0.8;
-    const offsetY = 0.05;
+    const offsetY = 0.075;
     const segmentsPerUnit = 3;
     const minSegments = 2;
     const maxSegments = 200;
@@ -53,7 +53,6 @@ export function createLine(
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
-        wireframe: true,
     });
 
     return new THREE.Mesh(geometry, material);
@@ -99,9 +98,8 @@ export function createCircle(
     circle.computeVertexNormals();
 
     const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
         side: THREE.DoubleSide,
-        wireframe: true,
+        color: 0xffffff,
     });
 
     return new THREE.Mesh(circle, material);
@@ -152,7 +150,6 @@ export function createCurvedArc(
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
-        wireframe: true,
     });
 
     return new THREE.Mesh(geometry, material);
@@ -187,7 +184,6 @@ export function createPenaltyPoint(
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
-        wireframe: true,
     });
 
     return new THREE.Mesh(circle, material);

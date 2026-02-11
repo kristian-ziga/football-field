@@ -62,7 +62,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         controls.enableDamping = true;
 
         // --- Shift points ---
-        const shiftedPoints = allPoints.map(([x, y, z]) => [x, y, z - 100]);
+        const shiftedPoints = allPoints.map(([x, y, z]) => [x, y, z]);
 
         const heights = shiftedPoints.map(p => p[2]);
         const minHeight = Math.min(...heights);
