@@ -86,7 +86,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     <Slider
                         value={maxRadius}
                         min={5}
-                        max={100}
+                        max={45}
                         onChange={(_, value) => setMaxRadius(value)}
                         style={{ flexGrow: 1 }}
                     />

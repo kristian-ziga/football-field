@@ -71,7 +71,7 @@ export function rotateField(points: number[][], firstPoint: number[], secondPoin
     const angle = Math.atan2(dy, dx);
 
     // Math.Pi / 2 because of finding angle of the middle line to vertical y-axis
-    const rotationNeeded = Math.PI / 2 - angle
+    const rotationNeeded = Math.PI / 2 - angle;
 
     points.forEach(point => {
         newPoints.push(rotatePoint(point[0], point[1], point[2], rotationNeeded))
@@ -81,7 +81,13 @@ export function rotateField(points: number[][], firstPoint: number[], secondPoin
 }
 
 export function rotatePoint(x: number, y: number, z: number, angle: number): number[] {
-    return [(x * Math.cos(angle) - y * Math.sin(angle)), (y * Math.cos(angle) + x * Math.sin(angle)), z]
+    const round3 = (n: number) => Number(n.toFixed(3));
+
+    const newX = round3(x * Math.cos(angle) - y * Math.sin(angle));
+    const newY = round3(y * Math.cos(angle) + x * Math.sin(angle));
+    const newZ = round3(z);
+
+    return [newX, newY, newZ];
 }
 
 type DragAndDropProps = {

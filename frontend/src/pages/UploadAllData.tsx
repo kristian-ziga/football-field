@@ -14,7 +14,7 @@ export default function UploadAllData() {
     };
 
     const handleBack = () => {
-        navigate("/home"); 
+        navigate("/"); 
         return;
     };
 
