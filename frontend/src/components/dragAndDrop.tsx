@@ -29,25 +29,28 @@ export function txtParser(text: string): number[][] {
         points.push([x, y, z]);
     });
 
-    if (points.length < 31)
-        return points
-
-    return transformPoints(points);
+    return points;
 }
 
-export function transformPoints(points: number[][]) {
+export function transformPoints(mainPoints: number[][], secondaryPoints?: number[][]) {
     const transformedPoints1: number[][] = [];
     const transformedPoints2: number[][] = [];
-    // const transformedPoints3: number[][] = [];
+    let transformedPoints3: number[][] = [];
 
-    const diffX = points[15][0];
-    const diffY = points[15][1];
-    const diffZ = points[15][2];
+    const diffX = mainPoints[15][0];
+    const diffY = mainPoints[15][1];
+    const diffZ = mainPoints[15][2];
 
-    points.forEach(point => {
+    mainPoints.forEach(point => {
         const [x, y, z] = point;
         transformedPoints1.push([x - diffX, y - diffY, z - diffZ])
     })
+    if (secondaryPoints) {
+        secondaryPoints.forEach(point => {
+            const [x, y, z] = point;
+            transformedPoints1.push([x - diffX, y - diffY, z - diffZ])
+        })
+    }
 
     const middle_point_height = transformedPoints1[15][2];
     transformedPoints1.forEach(point => {
@@ -55,7 +58,30 @@ export function transformPoints(points: number[][]) {
         transformedPoints2.push([x, y, z - middle_point_height])
     })
 
-    return transformedPoints2;
+    transformedPoints3 = rotateField(transformedPoints2, transformedPoints2[13], transformedPoints1[17]);
+    return transformedPoints3;
+}
+
+export function rotateField(points: number[][], firstPoint: number[], secondPoint: number[]): number[][] {
+    const newPoints: number[][] = [];
+
+    const dx = firstPoint[0] - secondPoint[0];
+    const dy = firstPoint[1] - secondPoint[1];
+
+    const angle = Math.atan2(dy, dx);
+
+    // Math.Pi / 2 because of finding angle of the middle line to vertical y-axis
+    const rotationNeeded = Math.PI / 2 - angle
+
+    points.forEach(point => {
+        newPoints.push(rotatePoint(point[0], point[1], point[2], rotationNeeded))
+    })
+
+    return newPoints;
+}
+
+export function rotatePoint(x: number, y: number, z: number, angle: number): number[] {
+    return [(x * Math.cos(angle) - y * Math.sin(angle)), (y * Math.cos(angle) + x * Math.sin(angle)), z]
 }
 
 type DragAndDropProps = {

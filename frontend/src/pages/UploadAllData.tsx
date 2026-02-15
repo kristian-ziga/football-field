@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useAppStorage } from "../visualization/StorageProvider";
 
 export default function UploadAllData() {
-    const { mainPoints, mainPointsFile } = useAppStorage();
+    const { getAllPoints } = useAppStorage();
     const navigate = useNavigate();
+    const allPoints = getAllPoints;
 
     const handleNext = () => {
         navigate("/visualization"); 
@@ -56,7 +57,7 @@ export default function UploadAllData() {
                 </Button>
                 <Button 
                     variant="contained"
-                    disabled={mainPoints.length < 31 && !mainPointsFile}
+                    disabled={allPoints.length < 31 && !allPoints}
                     onClick={handleNext}
                     sx={{
                         width: "clamp(10rem, 20vw, 20rem)",

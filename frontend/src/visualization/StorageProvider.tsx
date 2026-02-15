@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { transformPoints } from "../components/dragAndDrop";
 
 interface StoredFile {
     name: string;
@@ -14,6 +15,8 @@ interface AppStorage {
     addFile: (file: StoredFile, isMain: boolean) => void;
     removeFile: (isMain: boolean) => void;
     setPoints: (list: number[][], isMain: boolean) => void;
+    getMainPoints: () => number[][];
+    getAllPoints: () => number[][];
 }
 
 const AppStorageContext = createContext<AppStorage | null>(null);
@@ -81,8 +84,22 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
     };
 
+    const getAllPoints = () => {
+        if (mainPoints && mainPoints.length >= 31) {
+            return transformPoints([...mainPoints, ...(secondaryPoints ?? [])])
+        }
+        return [];
+    };
+
+    const getMainPoints = () => {
+        if (mainPoints && mainPoints.length >= 31) {
+            return transformPoints(mainPoints)
+        }
+        return [];
+    }
+
     return (
-        <AppStorageContext.Provider value={{ mainPointsFile, secondaryPointsFile, mainPoints, secondaryPoints, addFile, removeFile, setPoints }}>
+        <AppStorageContext.Provider value={{ mainPointsFile, secondaryPointsFile, mainPoints, secondaryPoints, addFile, removeFile, setPoints, getMainPoints, getAllPoints }}>
             {children}
         </AppStorageContext.Provider>
     );

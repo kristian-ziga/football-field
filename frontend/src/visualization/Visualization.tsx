@@ -2,6 +2,8 @@ import { useState } from "react";
 import ControlsPanel from "./ControlPanel";
 import SceneRenderer from "./SceneRenderer";
 import { useAppStorage } from "./StorageProvider";
+import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
+import {Link} from "react-router-dom";
 
 export default function Visualization() {
     const [zMultiplier, setZMultiplier] = useState(15);
@@ -15,10 +17,9 @@ export default function Visualization() {
     const [showPoints, setShowPoints] = useState(false);
     const [showHeatMap, setShowHeatMap] = useState(false);
 
-    const { mainPoints, secondaryPoints } = useAppStorage();
+    const { getAllPoints } = useAppStorage();
 
-    const allPoints = [...mainPoints, ...secondaryPoints];
-
+    const allPoints = getAllPoints();
 
     const line_order: number[][] = [
         [4, 9], [1, 12], [2, 7], [3, 6], [0, 13], [13, 25], [5, 17], [17, 30],
@@ -38,8 +39,48 @@ export default function Visualization() {
         [18, 19], [19, 20], [20, 21],
     ];
 
+    console.log(allPoints)
+    if (!allPoints || allPoints.length < 31) {
+        return (
+            <Dialog 
+                open={true}               
+                sx={{
+                    "& .MuiPaper-root": {
+                        backgroundColor: "#111827",
+                        color: "white",
+                        padding: "1rem"
+                    },
+                }}
+                >
+                <DialogTitle
+                        sx={{
+                            fontSize: "clamp(1.2rem, 10vw, 2.2rem)",
+                            color: "white",
+                            textAlign: "center",
+                        }}
+                    >
+                        Points for visualization are missing
+                </DialogTitle>
+                <DialogActions>
+                    <Button variant="contained" component={Link} to="/uploadAllData" sx={{
+                        width: "clamp(7rem, 10vw, 20rem)",
+                        height: "clamp(2rem, 6vh, 10rem)",
+                        padding: "1rem",
+                        fontSize: "clamp(1.7rem, 3vw, 2.5rem)",
+                        whiteSpace: "normal",
+                        textAlign: "center",
+                        border: "1px solid",
+                        justifyContent: "center",
+                    }}>
+                        OKAY
+                    </Button>
+                 </DialogActions>
+            </Dialog>
+        );
+    }
+
     return (
-        <div>
+        <div style={{ position: "fixed", inset: 0 }}>
             <SceneRenderer
                 zMultiplier={zMultiplier}
                 minRadius={minRadius}
