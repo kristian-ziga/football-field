@@ -67,10 +67,10 @@ export default function MeasurementValidation() {
         {name: "Left Lower Touchline", points: [0, 13], isHorizontal: true},
         {name: "Right Lower Touchline", points: [13, 25], isHorizontal: true},
         {name: "Halfline", points: [13, 17], isHorizontal: false},
-        {name: "Inne Circle", points: [14, 16], isHorizontal: false},
-        {name: "Middle Point", points: [15], isHorizontal: false},
-        {name: "Left Penalty Point", points: [8], isHorizontal: false},
-        {name: "Right Penalty Point", points: [22], isHorizontal: false},
+        {name: "Inne Circle", points: [15, 14, 16], isHorizontal: false},
+        {name: "Middle Point", points: [15, 13, 17], isHorizontal: false},
+        {name: "Left Penalty Point", points: [8, 2, 3], isHorizontal: false},
+        {name: "Right Penalty Point", points: [22, 27, 28], isHorizontal: false},
         {name: "Left Goal Line", points: [0, 5], isHorizontal: false},
         {name: "Left Goal Area Left Line", points: [2, 3], isHorizontal: false},
         {name: "Left Goal Area Right Line", points: [6, 7], isHorizontal: false},
@@ -95,12 +95,53 @@ export default function MeasurementValidation() {
         {name: "Right Penalty Arc Lower Point", points: [22, 20], isHorizontal: false},
     ];
 
+    function lineLength(x1: number, y1: number, x2: number, y2: number): number {
+        const dx = x1 - x2;
+        const dy = y1 - y2;
+
+        return Math.sqrt(dx ** 2 + dy ** 2);
+    }
+
     const angleTolerance = 0.05;
     const lengthTolerance = 0.05;
 
+    const resultOfLineValidation = [];
+
     for (let i = 0; i < linesToValidate.length; i++) {
-        
+        const line = linesToValidate[i];
+
+        if (line.name.includes("Penalty Point")) {
+            const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ]
+            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
+            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , perpendicular: , perpendicularOverMargin: })
+            continue;
+        }
+
+        if (line.name.includes("Middle Point")) {
+            const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ]
+            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
+            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , perpendicular: , perpendicularOverMargin: })
+            continue;
+        }
+
+         if (line.name.includes("Inner Circle")) {
+            const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ]
+            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
+            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , perpendicular: , perpendicularOverMargin: })
+            continue;
+        }
+
+        const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[0]][1])
+
+        if (line.name.includes("Penalty Arc")) {
+            continue;
+        }   
+
+
+
     }
+
+
 
     return (
         <div style={{ display: "flex",
