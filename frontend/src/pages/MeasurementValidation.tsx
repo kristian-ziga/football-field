@@ -113,21 +113,21 @@ export default function MeasurementValidation() {
         if (line.name.includes("Penalty Point")) {
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ]
             const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
-            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , perpendicular: , perpendicularOverMargin: })
+            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , angle: , angleOverMargin: });
             continue;
         }
 
         if (line.name.includes("Middle Point")) {
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ]
             const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
-            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , perpendicular: , perpendicularOverMargin: })
+            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , angle: , angleOverMargin: });
             continue;
         }
 
          if (line.name.includes("Inner Circle")) {
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ]
             const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
-            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , perpendicular: , perpendicularOverMargin: })
+            resultOfLineValidation.push({name: line.name, length: ,lengthOverMargin: , angle: null, angleOverMargin: });
             continue;
         }
 
