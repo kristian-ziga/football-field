@@ -94,9 +94,9 @@ export default function MeasurementValidation() {
         {name: "Right Goal Area Right Line", points: [27, 28], isHorizontal: false},
         {name: "Left Goal Area Right Line", points: [6, 7], isHorizontal: false},
         {name: "Right Goal Area Upper Line", points: [23, 28], isHorizontal: true},
-        {name: "Left Goal Area Upper Line", points: [3, 7], isHorizontal: true},
+        {name: "Left Goal Area Upper Line", points: [3, 6], isHorizontal: true},
         {name: "Right Goal Area Lower Line", points: [24, 27], isHorizontal: true},
-        {name: "Left Goal Area Lower Line", points: [2, 6], isHorizontal: true},
+        {name: "Left Goal Area Lower Line", points: [2, 7], isHorizontal: true},
         {name: "Right Penalty Area Left Line", points: [21, 18], isHorizontal: false},
         {name: "Left Penalty Area Left Line", points: [1, 4], isHorizontal: false},
         {name: "Right Penalty Area Right Line", points: [26, 29], isHorizontal: false},
@@ -120,11 +120,11 @@ export default function MeasurementValidation() {
     const lengthTolerance = 0.05;
 
     function lengthOverMargin(length: number, desiredLength: number, tolerance: number): number {
-        return Math.abs(desiredLength - length) - tolerance;
+        return Math.abs(desiredLength) - Math.abs(length) - tolerance;
     }
 
     function angleOverMargin(x1: number, x2: number, tolerance: number): number {
-        return Math.abs(x1 - x2) - tolerance;
+        return Math.abs(x1) - Math.abs(x2) - tolerance;
     }
 
     const lineValidations: LineValidation[] = useMemo(() => {
@@ -140,14 +140,14 @@ export default function MeasurementValidation() {
                 // 0.06 width of line
                 const lengthOver = lengthOverMargin(length + 0.06, 11, lengthTolerance)
                 const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1], middle[1], angleTolerance);
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: yAxisDiff >= 0, angleOverMargin: yAxisDiff, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
                 continue;
             }
 
             if (line.name.includes("Centre Point")) {
                 const xAxisDiff = angleOverMargin(mainPoints[line.points[0]][0], 0, angleTolerance);
                 const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1], 0, angleTolerance);
-                resultOfLineValidation.push({name: line.name, lengthOK: xAxisDiff >= 0, lengthOverMargin: xAxisDiff, angleOK: yAxisDiff >= 0, angleOverMargin: yAxisDiff, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: xAxisDiff <= 0, lengthOverMargin: xAxisDiff, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
                 continue;
             }
 
@@ -180,7 +180,7 @@ export default function MeasurementValidation() {
                 const xAxisDiff = angleOverMargin(mainPoints[line.points[0]][0], middle[0], angleTolerance);
                 const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1], middle[1], angleTolerance);
             
-                resultOfLineValidation.push({name: line.name, lengthOK: xAxisDiff >= 0, lengthOverMargin: xAxisDiff, angleOK: yAxisDiff >= 0, angleOverMargin: yAxisDiff, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: xAxisDiff <= 0, lengthOverMargin: xAxisDiff, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
                 continue;
             }
 
@@ -190,15 +190,15 @@ export default function MeasurementValidation() {
                 let desiredLength = 0;
                 if (line.name.includes("Touchline")) {
                     // needs special handling lengthOverMargin is actually real length, because of different ranges
-                    resultOfLineValidation.push({name: line.name, lengthOK: 110 >= (length + 0.12) && (length + 0.12) >= 100, lengthOverMargin: length + 0.12, angleOK: yAxisDiff >= 0, angleOverMargin: yAxisDiff, enabled: true});
+                    resultOfLineValidation.push({name: line.name, lengthOK: 110 >= (length + 0.12) && (length + 0.12) >= 100, lengthOverMargin: length + 0.12, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
                     continue;
                 } else if (line.name.includes("Goal Area Upper Line") || line.name.includes("Goal Area Lower Line")) {
-                    desiredLength = 16.5;
-                } else if (line.name.includes("Penalty Area Upper Line") || line.name.includes("Penalty Area Lower Line")) {
                     desiredLength = 5.5;
+                } else if (line.name.includes("Penalty Area Upper Line") || line.name.includes("Penalty Area Lower Line")) {
+                    desiredLength = 16.5;
                 } 
                 const lengthOver = lengthOverMargin(length + 0.12, desiredLength, lengthTolerance)
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: yAxisDiff >= 0, angleOverMargin: yAxisDiff, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
                 continue;
             } else {
                 const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
@@ -206,21 +206,28 @@ export default function MeasurementValidation() {
                 let desiredLength = 0;
                 if (line.name == "Halfline" || line.name == "Left Goal Line" || line.name == "Right Goal Line") {
                     // needs special handling lengthOverMargin is actually real length, because of different ranges
-                    resultOfLineValidation.push({name: line.name, lengthOK: 75 >= (length + 0.12) && (length + 0.12) >= 64, lengthOverMargin: length + 0.12, angleOK: xAxisDiff >= 0, angleOverMargin: xAxisDiff, enabled: true});
+                    resultOfLineValidation.push({name: line.name, lengthOK: 75 >= (length + 0.12) && (length + 0.12) >= 64, lengthOverMargin: length + 0.12, angleOK: xAxisDiff <= 0, angleOverMargin: xAxisDiff, enabled: true});
                     continue;
                 } else if (line.name.includes("Goal Area Left Line") || line.name.includes("Goal Area Right Line")) {
-                    desiredLength = 40.3;
-                } else if (line.name.includes("Penalty Area Left Line") || line.name.includes("Penalty Area Right Line")) {
                     desiredLength = 18.3;
+                } else if (line.name.includes("Penalty Area Left Line") || line.name.includes("Penalty Area Right Line")) {
+                    desiredLength = 40.3;
                 } 
                 const lengthOver = lengthOverMargin(length + 0.12, desiredLength, lengthTolerance)
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: xAxisDiff >= 0, angleOverMargin: xAxisDiff, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: xAxisDiff <= 0, angleOverMargin: xAxisDiff, enabled: true});
                 continue;
             }
         }
         return resultOfLineValidation;
     }, [mainPoints]);
 
+    const mergedLineValidations = useMemo(() => {
+        return lineValidations.map(line => ({
+            ...line,
+            enabled: enabledLines[line.name] ?? true
+        }));
+    }, [lineValidations, enabledLines]);
+console.log(mergedLineValidations)
     return (
         <div style={{ display: "flex",
             flexDirection: "column",
@@ -233,7 +240,7 @@ export default function MeasurementValidation() {
                    Measurement Validation
                 </div>
                 <div style={{ display: "flex", justifyContent: "center", maxWidth: window.innerWidth < 850 ? "100vw" : "75vw"}}>
-                    <InteractiveFootballField lineValidations={lineValidations}/>
+                    <InteractiveFootballField lineValidations={mergedLineValidations}/>
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", 

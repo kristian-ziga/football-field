@@ -25,7 +25,7 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         if (!lineValidation || !lineValidation.enabled) {
             return WHITE;
         }
-        return lineValidation.lengthOK && lineValidation.angleOK ? GREEN : RED;
+        return (lineValidation.lengthOK && lineValidation.angleOK) ? GREEN : RED;
     }
 
     function mixColor(color1: string, color2: string, color3?: string): string {
@@ -70,11 +70,11 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         //outlines
         
         ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Upper Touchline")), 
-                            lineColor(lineValidations.find(line => line.name === "Upper Touchline With Middle Point")));
+                            lineColor(lineValidations.find(line => line.name === "Upper Touchline With Middle")));
         ctx.fillRect(xMove, yMove, width, lineWidth);
 
         ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Lower Touchline")), 
-                            lineColor(lineValidations.find(line => line.name === "Lower Touchline With Middle Point")));
+                            lineColor(lineValidations.find(line => line.name === "Lower Touchline With Middle")));
         ctx.fillRect(xMove, yMove + height - lineWidth, width, lineWidth);
 
         
@@ -180,7 +180,7 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         ctx.stroke();
 
         //mid circle
-        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Centre Circle"));
+        ctx.strokeStyle = lineColor(lineValidations.find(line => line.name === "Centre Circle"));
         ctx.lineWidth = lineWidth;
         ctx.beginPath();
         ctx.arc(xMove + width/2, yMove + height/2, Math.min(width, height) * 0.18, 0, Math.PI * 2);
