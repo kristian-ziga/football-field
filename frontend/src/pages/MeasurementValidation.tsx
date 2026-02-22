@@ -28,6 +28,20 @@ export default function MeasurementValidation() {
         }));
     };
 
+    const toggleAll = () => {
+        const allEnabled = lineValidations.every(
+            line => enabledLines[line.name]
+        );
+
+        const updated: Record<string, boolean> = {};
+
+        lineValidations.forEach(line => {
+            updated[line.name] = !allEnabled;
+        });
+
+        setEnabledLines(updated);
+    };
+
     const handleNext = () => {
         navigate("/finalValidation"); 
         return;
@@ -224,10 +238,10 @@ export default function MeasurementValidation() {
     const mergedLineValidations = useMemo(() => {
         return lineValidations.map(line => ({
             ...line,
-            enabled: enabledLines[line.name] ?? true
+            enabled: enabledLines[line.name] ?? false
         }));
     }, [lineValidations, enabledLines]);
-console.log(mergedLineValidations)
+
     return (
         <div style={{ display: "flex",
             flexDirection: "column",
@@ -243,9 +257,7 @@ console.log(mergedLineValidations)
                     <InteractiveFootballField lineValidations={mergedLineValidations}/>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", 
-                    maxWidth: window.innerWidth < 850 ? "100vw" : "75vw", backgroundColor: "gray"}}>
-                   <div
+                <div
                     style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
@@ -255,28 +267,45 @@ console.log(mergedLineValidations)
                         padding: "1rem",
                         fontSize: "clamp(1.0rem, 6vw, 2.2rem)",
                     }}
-                    >
-                    {lineValidations.filter(line => 
-                        line.name !== "Upper Touchline With Middle" &&
-                        line.name !== "Lower Touchline With Middle"
-                    ).map((line) => (
-                        <label
-                        key={line.name}
+                >
+                    <label
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: "0.5rem"
+                            gap: "0.5rem",
+                            fontWeight: "bold"
                         }}
-                        >
+                    >
                         <input
                             type="checkbox"
-                            checked={!!enabledLines[line.name]}
-                            onChange={() => toggleLine(line.name)}
+                            checked={lineValidations.every(line => enabledLines[line.name])}
+                            onChange={toggleAll}
                         />
-                        {line.name}
-                        </label>
-                    ))}
-                    </div>
+                        All
+                    </label>
+
+                    {lineValidations
+                        .filter(line =>
+                            line.name !== "Upper Touchline With Middle" &&
+                            line.name !== "Lower Touchline With Middle"
+                        )
+                        .map((line) => (
+                            <label
+                                key={line.name}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem"
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={!!enabledLines[line.name]}
+                                    onChange={() => toggleLine(line.name)}
+                                />
+                                {line.name} : {line.lengthOK}
+                            </label>
+                        ))}
 
                 </div>
             </div>
