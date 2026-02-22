@@ -29,17 +29,22 @@ export default function MeasurementValidation() {
     };
 
     const toggleAll = () => {
-        const allEnabled = lineValidations.every(
-            line => enabledLines[line.name]
+        const filteredLines = lineValidations.filter(line =>
+            line.name !== "Upper Touchline With Middle" &&
+            line.name !== "Lower Touchline With Middle"
         );
 
-        const updated: Record<string, boolean> = {};
+        const allEnabled = filteredLines.every(line => enabledLines[line.name]);
 
-        lineValidations.forEach(line => {
+        const updated: Record<string, boolean> = {};
+        filteredLines.forEach(line => {
             updated[line.name] = !allEnabled;
         });
 
-        setEnabledLines(updated);
+        setEnabledLines(prev => ({
+            ...prev,
+            ...updated
+        }));
     };
 
     const handleNext = () => {
@@ -235,6 +240,84 @@ export default function MeasurementValidation() {
         return resultOfLineValidation;
     }, [mainPoints]);
 
+    function firstValue(line: LineValidation): string {
+        if (line.name.includes("Point")) {
+            if (line.lengthOK)
+                return "Vertical position: Valid"
+            return `Vertical position: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
+        }
+
+        if (line.name.includes("Centre Circle")) {
+            if (line.lengthOK)
+                return "Diameter: Valid"
+            return `Diameter: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
+        }
+
+        if (line.name.includes("Penalty Arc")) {
+            if (line.angleOK)
+                return "Upper point of Arc: Valid"
+            return `Upper point of Arc: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
+        }   
+
+        if (line.angleOK)
+            return "Length: Valid"
+        return `Length: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
+    }
+
+    function secondValue(line: LineValidation): string {
+        if (line.name.includes("Point")) {
+            if (line.angleOK)
+                return "Horizontal position: Valid"
+            return `Horizontal position: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+        }
+
+        if (line.name.includes("Centre Circle")) {
+            if (line.angleOK)
+                return "Centre of Circle: Valid"
+            return `Centre of Circle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+        }
+
+        if (line.name.includes("Penalty Arc")) {
+            if (line.angleOK)
+                return "Lower point of Arc: Valid"
+            return `Lower point of Arc: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}`
+        }   
+
+        if (line.angleOK)
+            return "Angle: Valid"
+        return `Angle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+    }
+
+    function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValidation): string {
+        let res = "";
+
+        res += line.lengthOK 
+            ? "Length: Valid" 
+            : `Length: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`;
+
+        res += line.angleOK 
+            ? ", Angle: Valid\n" 
+            : `, Angle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}\n`;
+
+        if (lineWidthMiddle) {
+            res += lineWidthMiddle.lengthOK 
+                ? "Vertical position of Middle: Valid" 
+                : `Vertical position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.lengthOverMargin.toFixed(3)}`;
+
+            res += lineWidthMiddle.angleOK 
+                ? ", Horizontal position of Middle: Valid" 
+                : `, Horizontal position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.angleOverMargin.toFixed(3)}`;
+        }
+
+        return res.trim();
+    }
+
+    const visibleLines = lineValidations.filter(line => 
+        line.name !== "Upper Touchline With Middle" &&
+        line.name !== "Lower Touchline With Middle"
+    );
+
+
     const mergedLineValidations = useMemo(() => {
         return lineValidations.map(line => ({
             ...line,
@@ -273,12 +356,13 @@ export default function MeasurementValidation() {
                             display: "flex",
                             alignItems: "center",
                             gap: "0.5rem",
-                            fontWeight: "bold"
+                            fontWeight: "bold",
+                            fontSize: "1.8rem"
                         }}
                     >
                         <input
                             type="checkbox"
-                            checked={lineValidations.every(line => enabledLines[line.name])}
+                            checked={visibleLines.every(line => enabledLines[line.name])}
                             onChange={toggleAll}
                         />
                         All
@@ -289,24 +373,48 @@ export default function MeasurementValidation() {
                             line.name !== "Upper Touchline With Middle" &&
                             line.name !== "Lower Touchline With Middle"
                         )
-                        .map((line) => (
-                            <label
-                                key={line.name}
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.5rem"
-                                }}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={!!enabledLines[line.name]}
-                                    onChange={() => toggleLine(line.name)}
-                                />
-                                {line.name} : {line.lengthOK}
-                            </label>
-                        ))}
+                        .map((line) => {
+                            // Red text if out of tolerance
+                            const statusText = line.name.includes("Upper Touchline")
+                                ? touchlineValue(line, lineValidations.find(l => l.name === "Upper Touchline With Middle"))
+                                : line.name.includes("Lower Touchline")
+                                ? touchlineValue(line, lineValidations.find(l => l.name === "Lower Touchline With Middle"))
+                                : `${firstValue(line)}, ${secondValue(line)}`;
 
+                            const isOutOfTolerance = statusText.includes("Out of tolerance");
+
+                            return (
+                                <label
+                                    key={line.name}
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "0.2rem",
+                                    }}
+                                >
+                                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={!!enabledLines[line.name]}
+                                            onChange={() => toggleLine(line.name)}
+                                        />
+                                        <span style={{ fontWeight: "bold", fontSize: "1.8rem" }}>
+                                            {line.name}
+                                        </span>
+                                    </div>
+                                    <span
+                                        style={{
+                                            fontSize: "1.2rem",
+                                            color: isOutOfTolerance ? "#fca5a5" : "#e5e4e4",
+                                            marginLeft: "1.8rem",
+                                            whiteSpace: "pre-line",
+                                        }}
+                                    >
+                                        {statusText}
+                                    </span>
+                                </label>
+                            );
+                        })}
                 </div>
             </div>
             <div  style={{ display: "flex", justifyContent: "center", flexDirection: "row", gap: "clamp(2rem, 35vw, 40rem)", 
