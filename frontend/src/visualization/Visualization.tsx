@@ -39,7 +39,6 @@ export default function Visualization() {
         [18, 19], [19, 20], [20, 21],
     ];
 
-    console.log(allPoints)
     if (!allPoints || allPoints.length < 31) {
         return (
             <Dialog 

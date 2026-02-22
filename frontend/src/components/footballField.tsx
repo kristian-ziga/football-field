@@ -12,8 +12,8 @@ export default function FootballField({ ord }: { ord: number }) {
         [0, 0.25],
         [0, 0],
 
-        [0.08, 0.6],
         [0.08, 0.4],
+        [0.08, 0.6],
 
         [0.115, 0.5],
 

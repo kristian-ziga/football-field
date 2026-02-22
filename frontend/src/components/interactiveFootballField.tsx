@@ -15,7 +15,7 @@ type InteractiveFootballFieldProps = {
 };
 
 const RED = "#ff0000";
-const GREEN = "#88df80";
+const GREEN = "#0d3b09";
 const WHITE = "#ffffff"
 
 export default function InteractiveFootballField({ lineValidations }: InteractiveFootballFieldProps) {
@@ -61,22 +61,10 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         const segmentWidth = width / segments;
 
         for (let i = 0; i < segments; i++) {
-            ctx.fillRect(i * segmentWidth * 2 + xMove, yMove, segmentWidth - 1, height);
+            ctx.fillRect(i * segmentWidth * 2 + xMove, yMove, segmentWidth , height);
         }
 
-        
         const lineWidth = Math.min(width, height) * 0.04;
-
-        //outlines
-        
-        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Upper Touchline")), 
-                            lineColor(lineValidations.find(line => line.name === "Upper Touchline With Middle")));
-        ctx.fillRect(xMove, yMove, width, lineWidth);
-
-        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Lower Touchline")), 
-                            lineColor(lineValidations.find(line => line.name === "Lower Touchline With Middle")));
-        ctx.fillRect(xMove, yMove + height - lineWidth, width, lineWidth);
-
         
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Line"));
         ctx.fillRect(xMove, yMove, lineWidth, height);
@@ -193,7 +181,14 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         ctx.arc(xMove + width/2, yMove + height/2, radius, 0, 2*Math.PI);
         ctx.fill();
 
+        //outlines
+        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Upper Touchline")), 
+                            lineColor(lineValidations.find(line => line.name === "Upper Touchline With Middle")));
+        ctx.fillRect(xMove, yMove - 1, width, lineWidth);
 
+        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Lower Touchline")), 
+                            lineColor(lineValidations.find(line => line.name === "Lower Touchline With Middle")));
+        ctx.fillRect(xMove, yMove + height - lineWidth + 1, width, lineWidth);
     
     }, [lineValidations]);
 

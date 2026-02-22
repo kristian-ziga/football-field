@@ -18,6 +18,7 @@ export default function MeasurementValidation() {
     const { getMainPoints } = useAppStorage();
     const navigate = useNavigate();
     const mainPoints = getMainPoints();
+    console.log(mainPoints)
 
     const [enabledLines, setEnabledLines] = useState<Record<string, boolean>>({});
 
@@ -135,16 +136,23 @@ export default function MeasurementValidation() {
         return Math.sqrt(dx ** 2 + dy ** 2);
     }
 
-    const angleTolerance = 0.05;
-    const lengthTolerance = 0.05;
+    const angleTolerance = 0.1;
+    const lengthTolerance = 0.1;
 
-    function lengthOverMargin(length: number, desiredLength: number, tolerance: number): number {
-        return Math.abs(desiredLength) - Math.abs(length) - tolerance;
+    function diffInLengths(length: number, desiredLength: number): number {
+        return Math.abs(desiredLength) - Math.abs(length);
     }
 
-    function angleOverMargin(x1: number, x2: number, tolerance: number): number {
-        return Math.abs(x1) - Math.abs(x2) - tolerance;
+    function isLengthOverMargin(diffLength: number, tolerance: number): boolean {
+        return tolerance/2 >= diffLength && diffLength >= -tolerance/2;
     }
+
+    function lengthOverMargin(diffLength: number, tolerance: number): number {
+        if (diffLength < 0)
+            return -(tolerance/2 + diffLength);
+        return tolerance/2 - diffLength;
+    }
+
 
     const lineValidations: LineValidation[] = useMemo(() => {
         const resultOfLineValidation: LineValidation[] = [];
@@ -157,38 +165,43 @@ export default function MeasurementValidation() {
                 const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
                 const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
                 // 0.06 width of line
-                const lengthOver = lengthOverMargin(length + 0.06, 11, lengthTolerance)
-                const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1], middle[1], angleTolerance);
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
+                const diffLength = diffInLengths(length + 0.06, 11)
+                const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1], middle[1]);
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
+                    angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                 continue;
             }
 
             if (line.name.includes("Centre Point")) {
-                const xAxisDiff = angleOverMargin(mainPoints[line.points[0]][0], 0, angleTolerance);
-                const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1], 0, angleTolerance);
-                resultOfLineValidation.push({name: line.name, lengthOK: xAxisDiff <= 0, lengthOverMargin: xAxisDiff, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
+                const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0], 0);
+                const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1], 0);
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(xAxisDiff, angleTolerance), lengthOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), 
+                    angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                 continue;
             }
 
             if (line.name.includes("Centre Circle")) {
                 const diameter = lineLength(mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], mainPoints[line.points[2]][0], mainPoints[line.points[2]][1]);
-                const diameterhOver1 = lengthOverMargin(diameter + 0.12, 18.30, lengthTolerance)
+                const diameterhOver = diffInLengths(diameter + 0.12, 18.30)
 
                 // how much off is middle point from middle of circle defined by two outer points
                 const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
                 const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
-                const lengthOver = lengthOverMargin(length, 0, lengthTolerance)
+                const diffLength = diffInLengths(length, 0)
             
-                resultOfLineValidation.push({name: line.name, lengthOK: diameterhOver1 <= 0, lengthOverMargin: diameterhOver1, angleOK: lengthOver <= 0, angleOverMargin: lengthOver, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diameterhOver, lengthTolerance), lengthOverMargin: lengthOverMargin(diameterhOver, lengthTolerance), 
+                    angleOK: isLengthOverMargin(diffLength, lengthTolerance), angleOverMargin: lengthOverMargin(diffLength, lengthTolerance), enabled: true});
                 continue;
             }
 
             if (line.name.includes("Penalty Arc")) {
                 const lengthUpperPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[0]][1])
-                const lengthLowerPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[0]][1])
-                const lengthOverUpper = lengthOverMargin(lengthUpperPoint + 0.06, 0, lengthTolerance)
-                const lengthOverLower = lengthOverMargin(lengthLowerPoint + 0.06, 0, lengthTolerance)
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOverUpper <= 0, lengthOverMargin: lengthOverUpper, angleOK: lengthOverLower <= 0, angleOverMargin: lengthOverLower, enabled: true});
+                const lengthLowerPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[2]][0], mainPoints[line.points[2]][1])
+                const lengthOverUpper = diffInLengths(lengthUpperPoint, 9.15)
+                const lengthOverLower = diffInLengths(lengthLowerPoint, 9.15)
+
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(lengthOverUpper, lengthTolerance + 0.06), lengthOverMargin: lengthOverMargin(lengthOverUpper, lengthTolerance + 0.06), 
+                    angleOK: isLengthOverMargin(lengthOverLower, lengthTolerance + 0.06), angleOverMargin: lengthOverMargin(lengthOverLower, lengthTolerance + 0.06), enabled: true});
                 continue;
             }   
 
@@ -196,49 +209,68 @@ export default function MeasurementValidation() {
             if (line.name.includes("Touchline With Middle")) {
                 // how much off is middle point from middle of circle defined by two outer points
                 const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
-                const xAxisDiff = angleOverMargin(mainPoints[line.points[0]][0], middle[0], angleTolerance);
-                const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1], middle[1], angleTolerance);
+                const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0], middle[0]);
+                const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1], middle[1]);
             
-                resultOfLineValidation.push({name: line.name, lengthOK: xAxisDiff <= 0, lengthOverMargin: xAxisDiff, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(xAxisDiff, angleTolerance), lengthOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), 
+                    angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                 continue;
             }
 
             if (line.isHorizontal) {
                 const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
-                const yAxisDiff = angleOverMargin(mainPoints[line.points[0]][1],  mainPoints[line.points[1]][1], angleTolerance);
+                const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1],  mainPoints[line.points[1]][1]);
                 let desiredLength = 0;
+
+                const diffLength = diffInLengths(length + 0.12, desiredLength)
+                console.log(length)
                 if (line.name.includes("Touchline")) {
+                    let lengthOver = 5 + lengthTolerance/2 - 105 - (length + 0.12);
+                    if (105 - (length + 0.12) < 0)
+                        lengthOver = -(5 + lengthTolerance/2 + 105 - (length + 0.12));
                     // needs special handling lengthOverMargin is actually real length, because of different ranges
-                    resultOfLineValidation.push({name: line.name, lengthOK: 110 >= (length + 0.12) && (length + 0.12) >= 100, lengthOverMargin: length + 0.12, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
+                    resultOfLineValidation.push({name: line.name, lengthOK: 110 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 100 - lengthTolerance/2, 
+                        lengthOverMargin: lengthOver, 
+                        angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                     continue;
                 } else if (line.name.includes("Goal Area Upper Line") || line.name.includes("Goal Area Lower Line")) {
                     desiredLength = 5.5;
                 } else if (line.name.includes("Penalty Area Upper Line") || line.name.includes("Penalty Area Lower Line")) {
                     desiredLength = 16.5;
+                    console.log(diffLength)
                 } 
-                const lengthOver = lengthOverMargin(length + 0.12, desiredLength, lengthTolerance)
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: yAxisDiff <= 0, angleOverMargin: yAxisDiff, enabled: true});
+
+
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
+                   angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                 continue;
             } else {
                 const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
-                const xAxisDiff = angleOverMargin(mainPoints[line.points[0]][0],  mainPoints[line.points[1]][0], angleTolerance);
+                const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0],  mainPoints[line.points[1]][0]);
                 let desiredLength = 0;
                 if (line.name == "Halfline" || line.name == "Left Goal Line" || line.name == "Right Goal Line") {
+                    let lengthOver = 4 + lengthTolerance/2 - 68 - (length + 0.12);
+                    if (68 - (length + 0.12) < 0)
+                        lengthOver = -(7 + lengthTolerance/2 + 68 - (length + 0.12));
                     // needs special handling lengthOverMargin is actually real length, because of different ranges
-                    resultOfLineValidation.push({name: line.name, lengthOK: 75 >= (length + 0.12) && (length + 0.12) >= 64, lengthOverMargin: length + 0.12, angleOK: xAxisDiff <= 0, angleOverMargin: xAxisDiff, enabled: true});
+                    resultOfLineValidation.push({name: line.name, lengthOK: 75 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 64 - lengthTolerance/2, lengthOverMargin: lengthOver, 
+                        angleOK: isLengthOverMargin(xAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), enabled: true});
                     continue;
                 } else if (line.name.includes("Goal Area Left Line") || line.name.includes("Goal Area Right Line")) {
                     desiredLength = 18.3;
                 } else if (line.name.includes("Penalty Area Left Line") || line.name.includes("Penalty Area Right Line")) {
                     desiredLength = 40.3;
                 } 
-                const lengthOver = lengthOverMargin(length + 0.12, desiredLength, lengthTolerance)
-                resultOfLineValidation.push({name: line.name, lengthOK: lengthOver <= 0, lengthOverMargin: lengthOver, angleOK: xAxisDiff <= 0, angleOverMargin: xAxisDiff, enabled: true});
+                const diffLength = diffInLengths(length + 0.12, desiredLength)
+                resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
+                    angleOK: isLengthOverMargin(xAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), enabled: true});
                 continue;
             }
         }
         return resultOfLineValidation;
     }, [mainPoints]);
+
+    console.log(lineValidations);
 
     function firstValue(line: LineValidation): string {
         if (line.name.includes("Point")) {
@@ -343,7 +375,9 @@ export default function MeasurementValidation() {
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        gridTemplateColumns: window.innerWidth < 500
+                            ? "1fr"
+                            : "1fr 1fr",
                         gap: "0.5rem 2rem",
                         maxWidth: window.innerWidth < 850 ? "100vw" : "75vw",
                         backgroundColor: "gray",
@@ -357,7 +391,8 @@ export default function MeasurementValidation() {
                             alignItems: "center",
                             gap: "0.5rem",
                             fontWeight: "bold",
-                            fontSize: "1.8rem"
+                            fontSize: "1.8rem",
+                            minWidth: 0,
                         }}
                     >
                         <input
@@ -390,6 +425,7 @@ export default function MeasurementValidation() {
                                         display: "flex",
                                         flexDirection: "column",
                                         gap: "0.2rem",
+                                        minWidth: 0,
                                     }}
                                 >
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
