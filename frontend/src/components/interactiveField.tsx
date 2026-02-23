@@ -18,7 +18,7 @@ const RED = "#ff0000";
 const GREEN = "#0d3b09";
 const WHITE = "#ffffff"
 
-export default function InteractiveFootballField({ lineValidations }: InteractiveFootballFieldProps) {
+export default function InteractiveField({ lineValidations }: InteractiveFootballFieldProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     function lineColor(lineValidation: LineValidation | undefined): string {
@@ -77,30 +77,24 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         ctx.fillRect(xMove + width/2 - lineWidth/2, yMove, lineWidth, height);
 
         //left penalty area
-
-        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Left Goal Line")), 
-                            lineColor(lineValidations.find(line => line.name === "Left Penalty Area Left Line")));
-        ctx.fillRect(xMove + width - lineWidth, yMove + height * 0.25 - lineWidth/2, lineWidth, height * 0.75 - height * 0.25 + lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Penalty Area Upper Line"));
         ctx.fillRect(xMove, yMove + height * 0.25 - lineWidth/2, width * 0.15, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Penalty Area Lower Line"));
         ctx.fillRect(xMove, yMove + height * 0.75 - lineWidth/2, width * 0.15, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Penalty Area Right Line"));
         ctx.fillRect(xMove + width * 0.15 - lineWidth/2, yMove + height * 0.25 - lineWidth/2, lineWidth, height * 0.75 - height * 0.25 + lineWidth);
+        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Penalty Area Left Line"));
+        ctx.fillRect(xMove, yMove + height * 0.25 - lineWidth/2, lineWidth, height * 0.75 - height * 0.25 + lineWidth);
 
         //left goal area
-
-        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Left Goal Line")), 
-                            lineColor(lineValidations.find(line => line.name === "Left Penalty Area Left Line")), 
-                            lineColor(lineValidations.find(line => line.name === "Left Goal Area Left Line")));
-        ctx.fillRect(xMove + width - lineWidth, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Upper Line"));
         ctx.fillRect(xMove, yMove + height * 0.4 - lineWidth/2, width * 0.08, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Lower Line"));
         ctx.fillRect(xMove, yMove + height * 0.6 - lineWidth/2, width * 0.08, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Right Line"));
-        ctx.fillRect(xMove + width * 0.08 - lineWidth, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
-
+        ctx.fillRect(xMove + width * 0.08, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
+        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Left Line"));
+        ctx.fillRect(xMove, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
 
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Penalty Point"));
         const rad = Math.min(width, height) * 0.025;
@@ -124,27 +118,24 @@ export default function InteractiveFootballField({ lineValidations }: Interactiv
         ctx.stroke();
 
         //right penalty area
-        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Right Goal Line")), 
-                            lineColor(lineValidations.find(line => line.name === "Right Penalty Area Right Line")));
-        ctx.fillRect(xMove + width - lineWidth, yMove + height * 0.25 - lineWidth/2, lineWidth, height * 0.75 - height * 0.25 + lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Penalty Area Upper Line"));
         ctx.fillRect(xMove + width * 0.85, yMove + height * 0.25 - lineWidth/2, width * 0.15, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Penalty Area Lower Line"));
         ctx.fillRect(xMove + width * 0.85, yMove + height * 0.75 - lineWidth/2, width * 0.15, lineWidth);
-         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Penalty Area Left Line"));
+        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Penalty Area Left Line"));
         ctx.fillRect(xMove + width * 0.85 - lineWidth/2, yMove + height * 0.25 - lineWidth/2, lineWidth, height * 0.75 - height * 0.25 + lineWidth);
+        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Penalty Area Right Line"));
+        ctx.fillRect(xMove + width - lineWidth, yMove + height * 0.25 - lineWidth/2, lineWidth, height * 0.75 - height * 0.25 + lineWidth);
 
         //right goal area
-        ctx.fillStyle = mixColor(lineColor(lineValidations.find(line => line.name === "Right Goal Line")), 
-                            lineColor(lineValidations.find(line => line.name === "Right Penalty Area Right Line")), 
-                            lineColor(lineValidations.find(line => line.name === "Right Goal Area Right Line")));
-        ctx.fillRect(xMove + width - lineWidth, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Goal Area Upper Line"));
         ctx.fillRect(xMove + width * 0.92, yMove + height * 0.4 - lineWidth/2, width * 0.08, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Goal Area Lower Line"));
         ctx.fillRect(xMove + width * 0.92, yMove + height * 0.6 - lineWidth/2, width * 0.08, lineWidth);
+        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Goal Area Left Line"));
+        ctx.fillRect(xMove + width * 0.92, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Goal Area Right Line"));
-        ctx.fillRect(xMove + width * 0.92, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4+ lineWidth);
+        ctx.fillRect(xMove + width - lineWidth, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
 
 
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Right Penalty Point"));
