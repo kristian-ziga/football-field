@@ -34,7 +34,8 @@ export function createLine(
     const geometry = new THREE.PlaneGeometry(length, width, lengthSegments, widthSegments);
     geometry.rotateX(-Math.PI / 2);
 
-    const angle = Math.atan2(dz, dx);
+    // important minus
+    const angle = -Math.atan2(dz, dx);
     geometry.rotateY(angle);
 
     const centerX = (x1 + x2) / 2;
