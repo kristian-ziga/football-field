@@ -20,6 +20,7 @@ export default function MeasurementValidation() {
     const mainPoints = getMainPoints();
     console.log(mainPoints)
 
+
     const [enabledLines, setEnabledLines] = useState<Record<string, boolean>>({});
 
     const toggleLine = (name: string) => {
@@ -100,33 +101,47 @@ export default function MeasurementValidation() {
     const linesToValidate = [
         {name: "Upper Touchline", points: [5, 30], isHorizontal: true}, 
         {name: "Upper Touchline With Middle", points: [17, 5, 30], isHorizontal: true},
+
         {name: "Lower Touchline", points: [0, 25], isHorizontal: true}, 
         {name: "Lower Touchline With Middle", points: [13, 0, 25], isHorizontal: true},
+
         {name: "Halfline", points: [13, 17], isHorizontal: false},
+        
         {name: "Centre Circle", points: [15, 14, 16], isHorizontal: false},
         {name: "Centre Point", points: [15], isHorizontal: false},
-        {name: "Right Penalty Point", points: [22, 27, 28], isHorizontal: false},
-        {name: "Left Penalty Point", points: [8, 2, 3], isHorizontal: false}, 
-        {name: "Right Goal Line", points: [25, 30], isHorizontal: false},
-        {name: "Left Goal Line", points: [0, 5], isHorizontal: false},
-        {name: "Right Goal Area Left Line", points: [24, 23], isHorizontal: false},
-        {name: "Left Goal Area Left Line", points: [2, 3], isHorizontal: false},
-        {name: "Right Goal Area Right Line", points: [27, 28], isHorizontal: false},
-        {name: "Left Goal Area Right Line", points: [6, 7], isHorizontal: false},
-        {name: "Right Goal Area Upper Line", points: [23, 28], isHorizontal: true},
-        {name: "Left Goal Area Upper Line", points: [3, 6], isHorizontal: true},
-        {name: "Right Goal Area Lower Line", points: [24, 27], isHorizontal: true},
-        {name: "Left Goal Area Lower Line", points: [2, 7], isHorizontal: true},
-        {name: "Right Penalty Area Left Line", points: [21, 18], isHorizontal: false},
-        {name: "Left Penalty Area Left Line", points: [1, 4], isHorizontal: false},
-        {name: "Right Penalty Area Right Line", points: [26, 29], isHorizontal: false},
-        {name: "Left Penalty Area Right Line", points: [9, 12], isHorizontal: false},
-        {name: "Right Penalty Area Upper Line", points: [18, 29], isHorizontal: true},
-        {name: "Left Penalty Area Upper Line", points: [4, 12], isHorizontal: true},
-        {name: "Right Penalty Area Lower Line", points: [21, 26], isHorizontal: true},
-        {name: "Left Penalty Area Lower Line", points: [1, 9], isHorizontal: true},
-        {name: "Right Penalty Arc", points: [22, 19, 20], isHorizontal: false},
-        {name: "Left Penalty Arc", points: [8, 10, 11], isHorizontal: false},
+
+        {name: "Left Penalty Point", points: [22, 27, 28], isHorizontal: false},
+        {name: "Right Penalty Point", points: [8, 2, 3], isHorizontal: false}, 
+
+        {name: "Left Goal Line", points: [25, 30], isHorizontal: false},
+        {name: "Right Goal Line", points: [0, 5], isHorizontal: false},
+
+        {name: "Left Goal Area Left Line", points: [24, 23], isHorizontal: false},
+        {name: "Right Goal Area Left Line", points: [2, 3], isHorizontal: false},
+
+        {name: "Left Goal Area Right Line", points: [27, 28], isHorizontal: false},
+        {name: "Right Goal Area Right Line", points: [6, 7], isHorizontal: false},
+
+        {name: "Left Goal Area Upper Line", points: [23, 28], isHorizontal: true},
+        {name: "Right Goal Area Upper Line", points: [3, 6], isHorizontal: true},
+
+        {name: "Left Goal Area Lower Line", points: [24, 27], isHorizontal: true},
+        {name: "Right Goal Area Lower Line", points: [2, 7], isHorizontal: true},
+
+        {name: "Left Penalty Area Left Line", points: [21, 18], isHorizontal: false},
+        {name: "Right Penalty Area Left Line", points: [1, 4], isHorizontal: false},
+
+        {name: "Left Penalty Area Right Line", points: [26, 29], isHorizontal: false},
+        {name: "Right Penalty Area Right Line", points: [9, 12], isHorizontal: false},
+
+        {name: "Left Penalty Area Upper Line", points: [18, 29], isHorizontal: true},
+        {name: "Right Penalty Area Upper Line", points: [4, 12], isHorizontal: true},
+
+        {name: "Left Penalty Area Lower Line", points: [21, 26], isHorizontal: true},
+        {name: "Right Penalty Area Lower Line", points: [1, 9], isHorizontal: true},
+
+        {name: "Left Penalty Arc", points: [22, 19, 20], isHorizontal: false},
+        {name: "Right Penalty Arc", points: [8, 10, 11], isHorizontal: false},
     ];
 
     function lineLength(x1: number, y1: number, x2: number, y2: number): number {
@@ -136,11 +151,12 @@ export default function MeasurementValidation() {
         return Math.sqrt(dx ** 2 + dy ** 2);
     }
 
-    const angleTolerance = 0.1;
-    const lengthTolerance = 0.1;
+    const angleTolerance = 0.12;
+    const lengthTolerance = 0.12;
 
     function diffInLengths(length: number, desiredLength: number): number {
-        return Math.abs(desiredLength) - Math.abs(length);
+        const res = Math.abs(desiredLength) - Math.abs(length);
+        return Math.trunc(res * 1000) / 1000;
     }
 
     function isLengthOverMargin(diffLength: number, tolerance: number): boolean {
@@ -195,7 +211,7 @@ export default function MeasurementValidation() {
             }
 
             if (line.name.includes("Penalty Arc")) {
-                const lengthUpperPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[0]][1])
+                const lengthUpperPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
                 const lengthLowerPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[2]][0], mainPoints[line.points[2]][1])
                 const lengthOverUpper = diffInLengths(lengthUpperPoint, 9.15)
                 const lengthOverLower = diffInLengths(lengthLowerPoint, 9.15)
@@ -221,9 +237,7 @@ export default function MeasurementValidation() {
                 const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
                 const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1],  mainPoints[line.points[1]][1]);
                 let desiredLength = 0;
-
-                const diffLength = diffInLengths(length + 0.12, desiredLength)
-                console.log(length)
+                
                 if (line.name.includes("Touchline")) {
                     let lengthOver = 5 + lengthTolerance/2 - 105 - (length + 0.12);
                     if (105 - (length + 0.12) < 0)
@@ -237,10 +251,9 @@ export default function MeasurementValidation() {
                     desiredLength = 5.5;
                 } else if (line.name.includes("Penalty Area Upper Line") || line.name.includes("Penalty Area Lower Line")) {
                     desiredLength = 16.5;
-                    console.log(diffLength)
                 } 
-
-
+                const diffLength = diffInLengths(length + 0.12, desiredLength)
+                
                 resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
                    angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                 continue;
@@ -269,8 +282,6 @@ export default function MeasurementValidation() {
         }
         return resultOfLineValidation;
     }, [mainPoints]);
-
-    console.log(lineValidations);
 
     function firstValue(line: LineValidation): string {
         if (line.name.includes("Point")) {
