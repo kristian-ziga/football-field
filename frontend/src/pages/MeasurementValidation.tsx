@@ -14,6 +14,81 @@ type LineValidation = {
   enabled: boolean;
 };
 
+export function firstValue(line: LineValidation): string {
+    if (line.name.includes("Point")) {
+        if (line.lengthOK)
+            return "Vertical position: Valid"
+        return `Vertical position: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
+    }
+
+    if (line.name.includes("Centre Circle")) {
+        if (line.lengthOK)
+            return "Diameter: Valid"
+        return `Diameter: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
+    }
+
+    if (line.name.includes("Penalty Arc")) {
+        if (line.lengthOK)
+            return "Upper point of Arc: Valid"
+        return `Upper point of Arc: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
+    }   
+
+    if (line.lengthOK)
+        return "Length: Valid"
+    else if (line.name.includes("Halfline") || line.name.includes("Left Goal Line") || line.name.includes("Right Goal Line")) {
+        return `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)}`
+    }
+    return `Length: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
+}
+
+export function secondValue(line: LineValidation): string {
+    if (line.name.includes("Point")) {
+        if (line.angleOK)
+            return "Horizontal position: Valid"
+        return `Horizontal position: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+    }
+
+    if (line.name.includes("Centre Circle")) {
+        if (line.angleOK)
+            return "Centre of Circle: Valid"
+        return `Centre of Circle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+    }
+
+    if (line.name.includes("Penalty Arc")) {
+        if (line.angleOK)
+            return "Lower point of Arc: Valid"
+        return `Lower point of Arc: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}`
+    }   
+
+    if (line.angleOK)
+        return "Angle: Valid"
+    return `Angle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+}
+
+export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValidation): string {
+    let res = "";
+
+    res += line.lengthOK 
+        ? "Length: Valid" 
+        : `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)}`;
+
+    res += line.angleOK 
+        ? ", Angle: Valid\n" 
+        : `, Angle: Invalid, Out of tolerance. Length: ${line.angleOverMargin.toFixed(3)}\n`;
+
+    if (lineWidthMiddle) {
+        res += lineWidthMiddle.lengthOK 
+            ? "Vertical position of Middle: Valid" 
+            : `Vertical position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.lengthOverMargin.toFixed(3)}`;
+
+        res += lineWidthMiddle.angleOK 
+            ? ", Horizontal position of Middle: Valid" 
+            : `, Horizontal position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.angleOverMargin.toFixed(3)}`;
+    }
+
+    return res.trim();
+}
+
 export function getValidations(mainPoints: number[][]): LineValidation[] {
     const linesToValidate = [
         {name: "Upper Touchline", points: [5, 30], isHorizontal: true}, 
@@ -141,12 +216,10 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             let desiredLength = 0;
             
             if (line.name.includes("Touchline")) {
-                let lengthOver = 5 + lengthTolerance/2 - (105 - (length + 0.12));
-                if (105 - (length + 0.12) < 0)
-                    lengthOver = -(5 + lengthTolerance/2 + (105 - (length + 0.12)));
+               
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
                 resultOfLineValidation.push({name: line.name, lengthOK: 110 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 100 - lengthTolerance/2, 
-                    lengthOverMargin: lengthOver, 
+                    lengthOverMargin: length + 0.12, 
                     angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
                 continue;
             } else if (line.name.includes("Goal Area Upper Line") || line.name.includes("Goal Area Lower Line")) {
@@ -164,11 +237,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0],  mainPoints[line.points[1]][0]);
             let desiredLength = 0;
             if (line.name == "Halfline" || line.name == "Left Goal Line" || line.name == "Right Goal Line") {
-                let lengthOver = 4 + lengthTolerance/2 - (68 - (length + 0.12));
-                if (68 - (length + 0.12) < 0)
-                    lengthOver = -(7 + lengthTolerance/2 + (68 - (length + 0.12)));
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
-                resultOfLineValidation.push({name: line.name, lengthOK: 75 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 64 - lengthTolerance/2, lengthOverMargin: lengthOver, 
+                resultOfLineValidation.push({name: line.name, lengthOK: 75 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 64 - lengthTolerance/2, lengthOverMargin: length + 0.12, 
                     angleOK: isLengthOverMargin(xAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), enabled: true});
                 continue;
             } else if (line.name.includes("Goal Area Left Line") || line.name.includes("Goal Area Right Line")) {
@@ -191,6 +261,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     }
     return resultOfLineValidation;
 }
+
 
 export default function MeasurementValidation() {
     const { getMainPoints } = useAppStorage();
@@ -278,77 +349,7 @@ export default function MeasurementValidation() {
 
     
 
-    function firstValue(line: LineValidation): string {
-        if (line.name.includes("Point")) {
-            if (line.lengthOK)
-                return "Vertical position: Valid"
-            return `Vertical position: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
-        }
-
-        if (line.name.includes("Centre Circle")) {
-            if (line.lengthOK)
-                return "Diameter: Valid"
-            return `Diameter: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
-        }
-
-        if (line.name.includes("Penalty Arc")) {
-            if (line.lengthOK)
-                return "Upper point of Arc: Valid"
-            return `Upper point of Arc: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
-        }   
-
-        if (line.lengthOK)
-            return "Length: Valid"
-        return `Length: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
-    }
-
-    function secondValue(line: LineValidation): string {
-        if (line.name.includes("Point")) {
-            if (line.angleOK)
-                return "Horizontal position: Valid"
-            return `Horizontal position: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
-        }
-
-        if (line.name.includes("Centre Circle")) {
-            if (line.angleOK)
-                return "Centre of Circle: Valid"
-            return `Centre of Circle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
-        }
-
-        if (line.name.includes("Penalty Arc")) {
-            if (line.angleOK)
-                return "Lower point of Arc: Valid"
-            return `Lower point of Arc: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}`
-        }   
-
-        if (line.angleOK)
-            return "Angle: Valid"
-        return `Angle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
-    }
-
-    function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValidation): string {
-        let res = "";
-
-        res += line.lengthOK 
-            ? "Length: Valid" 
-            : `Length: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`;
-
-        res += line.angleOK 
-            ? ", Angle: Valid\n" 
-            : `, Angle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}\n`;
-
-        if (lineWidthMiddle) {
-            res += lineWidthMiddle.lengthOK 
-                ? "Vertical position of Middle: Valid" 
-                : `Vertical position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.lengthOverMargin.toFixed(3)}`;
-
-            res += lineWidthMiddle.angleOK 
-                ? ", Horizontal position of Middle: Valid" 
-                : `, Horizontal position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.angleOverMargin.toFixed(3)}`;
-        }
-
-        return res.trim();
-    }
+    
 
     const visibleLines = lineValidations ? lineValidations.filter(line => 
         line.name !== "Upper Touchline With Middle" &&
