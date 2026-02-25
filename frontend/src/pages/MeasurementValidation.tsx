@@ -18,51 +18,51 @@ export function firstValue(line: LineValidation): string {
     if (line.name.includes("Point")) {
         if (line.lengthOK)
             return "Vertical position: Valid"
-        return `Vertical position: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
+        return `Vertical position: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm` 
     }
 
     if (line.name.includes("Centre Circle")) {
         if (line.lengthOK)
             return "Diameter: Valid"
-        return `Diameter: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
+        return `Diameter: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm`
     }
 
     if (line.name.includes("Penalty Arc")) {
         if (line.lengthOK)
             return "Upper point of Arc: Valid"
-        return `Upper point of Arc: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}` 
+        return `Upper point of Arc: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm` 
     }   
 
     if (line.lengthOK)
         return "Length: Valid"
     else if (line.name.includes("Halfline") || line.name.includes("Left Goal Line") || line.name.includes("Right Goal Line")) {
-        return `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)}`
+        return `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)}m`
     }
-    return `Length: Invalid, Out of tolerance by ${line.lengthOverMargin.toFixed(3)}`
+    return `Length: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm`
 }
 
 export function secondValue(line: LineValidation): string {
     if (line.name.includes("Point")) {
         if (line.angleOK)
             return "Horizontal position: Valid"
-        return `Horizontal position: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+        return `Horizontal position: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm` 
     }
 
     if (line.name.includes("Centre Circle")) {
         if (line.angleOK)
             return "Centre of Circle: Valid"
-        return `Centre of Circle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+        return `Centre of Circle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm` 
     }
 
     if (line.name.includes("Penalty Arc")) {
         if (line.angleOK)
             return "Lower point of Arc: Valid"
-        return `Lower point of Arc: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}`
+        return `Lower point of Arc: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm`
     }   
 
     if (line.angleOK)
         return "Angle: Valid"
-    return `Angle: Invalid, Out of tolerance by ${line.angleOverMargin.toFixed(3)}` 
+    return `Angle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm` 
 }
 
 export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValidation): string {
@@ -70,20 +70,20 @@ export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValid
 
     res += line.lengthOK 
         ? "Length: Valid" 
-        : `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)}`;
+        : `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)}m`;
 
     res += line.angleOK 
         ? ", Angle: Valid\n" 
-        : `, Angle: Invalid, Out of tolerance. Length: ${line.angleOverMargin.toFixed(3)}\n`;
+        : `, Angle: Invalid, Out of tolerance. Length: ${line.angleOverMargin.toFixed(3)}m\n`;
 
     if (lineWidthMiddle) {
         res += lineWidthMiddle.lengthOK 
             ? "Vertical position of Middle: Valid" 
-            : `Vertical position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.lengthOverMargin.toFixed(3)}`;
+            : `Vertical position of Middle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm`;
 
         res += lineWidthMiddle.angleOK 
             ? ", Horizontal position of Middle: Valid" 
-            : `, Horizontal position of Middle: Invalid, Out of tolerance by ${lineWidthMiddle.angleOverMargin.toFixed(3)}`;
+            : `, Horizontal position of Middle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)}cm`;
     }
 
     return res.trim();

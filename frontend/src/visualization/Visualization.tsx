@@ -20,6 +20,7 @@ export default function Visualization() {
     const { getAllPoints } = useAppStorage();
 
     const allPoints = getAllPoints();
+    const allPointsForVisualization = allPoints.map(([x, y, z]) => [x, -y, z]);
 
     const line_order: number[][] = [
         [4, 9], [1, 12], [2, 7], [3, 6], [0, 13], [13, 25], [5, 17], [17, 30],
@@ -90,7 +91,7 @@ export default function Visualization() {
                 showPlanes={showPlanes}
                 showPoints={showPoints}
                 showHeatMap={showHeatMap}
-                allPoints={allPoints}
+                allPoints={allPointsForVisualization}
                 line_order={line_order}
             />
             <ControlsPanel
