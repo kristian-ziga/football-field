@@ -44,6 +44,9 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
 
     const minRadiusMax = allPoints.length > 50 ? 25 : 7;
 
+    const lowestPoint = Math.min(...allPoints.map(([_, __, z]) => z)) * 100;
+    const highestPoint = Math.max(...allPoints.map(([_, __, z]) => z)) * 100;
+
     return (
         <div
             style={{
@@ -127,27 +130,78 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                         Show Points
                     </label>
                 </div>
-
                 <div
                     style={{
-                        width: "50px",
+                        position: "relative",
+                        width: "70px",
                         height: "120px",
-                        background: "linear-gradient(to top," +
-                            Array.from({ length: 20 }, (_, i) => {
-                                const t = i / 19;
-                                const hue = 0.44 - 0.37 * t;
-                                const light = 0.10 + 0.5 * t;
-                                const color = new THREE.Color();
-                                color.setHSL(hue, 0.75, light);
-                                return `#${color.getHexString()} ${Math.round(t * 100)}%`;
-                            }).join(",") +
-                            ")",
-                        border: "2px solid #fff",
-                        borderRadius: "10px",
+                        paddingBottom: "5px"
                     }}
-                />
-            </div>
+                >
+                    <div
+                        style={{
+                            width: "70px",
+                            height: "120px",
+                            background: "linear-gradient(to top," +
+                                Array.from({ length: 20 }, (_, i) => {
+                                    const t = i / 19;
+                                    const hue = 0.44 - 0.37 * t;
+                                    const light = 0.10 + 0.5 * t;
+                                    const color = new THREE.Color();
+                                    color.setHSL(hue, 0.75, light);
+                                    return `#${color.getHexString()} ${Math.round(t * 100)}%`;
+                                }).join(",") +
+                                ")",
+                            border: "2px solid #fff",
+                            borderRadius: "10px",
+                        }}
+                    />
 
+                    <div style={{
+                        justifyContent: "center"
+                    }}>
+                        <div
+                            style={{
+                                position: "absolute",
+                                right: "15%",
+                                top: "4px",
+                                fontSize: "1rem",
+                                fontWeight: 600,
+                                color: "#0e1e4c",
+                            }}
+                        >
+                            {highestPoint} cm
+                        </div>
+
+                        <div
+                            style={{
+                                position: "absolute",
+                                right: "15%",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                fontSize: "1rem",
+                                fontWeight: 600,
+                                color: "#0e1e4c",
+                            }}
+                        >
+                            {((highestPoint + lowestPoint) / 2).toFixed(1)} cm
+                        </div>
+
+                        <div
+                            style={{
+                                position: "absolute",
+                                right: "15%",
+                                bottom: "4px",
+                                fontSize: "1rem",
+                                fontWeight: 600,
+                                color: "#0e1e4c",
+                            }}
+                        >
+                            {lowestPoint} cm
+                        </div>
+                    </div>
+                </div>
+            </div>
             <Button
                 variant="contained"
                 onClick={() => navigate("/measurementValidation")}

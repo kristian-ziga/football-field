@@ -92,7 +92,7 @@ export default function InteractiveField({ lineValidations }: InteractiveFootbal
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Lower Line"));
         ctx.fillRect(xMove, yMove + height * 0.6 - lineWidth/2, width * 0.08, lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Right Line"));
-        ctx.fillRect(xMove + width * 0.08, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
+        ctx.fillRect(xMove + width * 0.08 - lineWidth, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
         ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Left Goal Area Left Line"));
         ctx.fillRect(xMove, yMove + height * 0.4 - lineWidth/2, lineWidth, height * 0.6 - height * 0.4 + lineWidth);
 
