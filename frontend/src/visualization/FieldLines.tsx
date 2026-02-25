@@ -128,7 +128,7 @@ export function createCurvedArc(
 
     const dx = x2 - x1;
     const dz = z2 - z1;
-    const offset = direction ? arcHeight : -arcHeight;
+    const offset = direction ? -arcHeight : arcHeight;
 
     const control = new THREE.Vector3(
         midX - (dz / Math.hypot(dx, dz)) * offset,
