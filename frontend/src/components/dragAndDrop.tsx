@@ -200,7 +200,7 @@ export default function DragAndDrop({ isMain }: DragAndDropProps) {
                 ) : (
                     <>
                         <span>
-                            Drag & drop a {isMain ? "MAIN " : "SECONDARY "}txt file here or{" "}
+                            Drag & drop a {isMain ? "MAIN " : "MESH "}txt file here or{" "}
                             <label
                                 htmlFor={inputId}
                                 style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
