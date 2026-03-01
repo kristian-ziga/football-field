@@ -38,9 +38,9 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
 }) => {
     const navigate = useNavigate();
 
-    const { mainPoints, secondaryPoints } = useAppStorage();
+    const { getAllPoints } = useAppStorage();
 
-    const allPoints = [...mainPoints, ...secondaryPoints];
+    const allPoints = getAllPoints();
 
     const minRadiusMax = allPoints.length > 50 ? 25 : 7;
 
@@ -100,7 +100,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     <Slider
                         value={xFactor}
                         min={1}
-                        max={20}
+                        max={12}
                         onChange={(_, value) => setXFactor(value)}
                         style={{ flexGrow: 1 }}
                     />
@@ -170,7 +170,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                                 color: "#0e1e4c",
                             }}
                         >
-                            {highestPoint} cm
+                            {highestPoint.toFixed(1)} cm
                         </div>
 
                         <div
@@ -197,7 +197,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                                 color: "#0e1e4c",
                             }}
                         >
-                            {lowestPoint} cm
+                            {lowestPoint.toFixed(1)} cm
                         </div>
                     </div>
                 </div>

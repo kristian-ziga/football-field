@@ -6,16 +6,7 @@ import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
 import {Link} from "react-router-dom";
 
 export default function Visualization() {
-    const [zMultiplier, setZMultiplier] = useState(15);
-    const [minRadius, setMinRadius] = useState(7);
-    const [maxRadius, setMaxRadius] = useState(25);
-    const [xFactor, setXFactor] = useState(5);
-
-    const [showMeshes, setShowMeshes] = useState(true);
-    const [showLines, setShowLines] = useState(true);
-    const [showPlanes, setShowPlanes] = useState(false);
-    const [showPoints, setShowPoints] = useState(false);
-    const [showHeatMap, setShowHeatMap] = useState(false);
+    
 
     const { getAllPoints } = useAppStorage();
 
@@ -78,6 +69,55 @@ export default function Visualization() {
             </Dialog>
         );
     }
+     const xs = allPoints.map(p => p[0]);
+    const ys = allPoints.map(p => p[1]);
+    const marginX = 2;
+    const marginY = 3;
+    const minX = Math.min(...xs) - marginX;
+    const maxX = Math.max(...xs) + marginX;
+    const minY = Math.min(...ys) - marginY;
+    const maxY = Math.max(...ys) + marginY;
+    const length = maxX - minX;
+    const height = maxY - minY;
+
+    const densities: { [key: number]: number } = {};
+
+    for (let i = 1; i < 6; i++) {
+        for (let j = 1; j < 4; j++) {
+            const points = [];
+            allPoints.forEach(([x, y, z]) => {
+                if (x >= minX + length * (i - 1) / 5 && x < minX + length * i / 5 &&
+                    y >= minY + height * (j - 1) / 3 && y < minY + height * j / 3) {
+                    points.push([x, y, z]);
+                }
+            });
+            densities[points.length] = (densities[points.length] || 0) + 1;
+        }
+    }
+    
+    let mode = 0;
+    Object.entries(densities).forEach(([pointCount, count]) => {
+        if (count > densities[mode] || densities[mode] === undefined) {
+            mode = parseInt(pointCount);
+        }
+    });
+
+    if (mode === 0) {
+        mode = 1;
+    }
+
+    const density = 7 / mode;    
+
+    const [zMultiplier, setZMultiplier] = useState(15);
+    const [minRadius, setMinRadius] = useState(7);
+    const [maxRadius, setMaxRadius] = useState(25);
+    const [xFactor, setXFactor] = useState(density);
+
+    const [showMeshes, setShowMeshes] = useState(true);
+    const [showLines, setShowLines] = useState(true);
+    const [showPlanes, setShowPlanes] = useState(false);
+    const [showPoints, setShowPoints] = useState(false);
+    const [showHeatMap, setShowHeatMap] = useState(false);
 
     return (
         <div style={{ position: "fixed", inset: 0 }}>

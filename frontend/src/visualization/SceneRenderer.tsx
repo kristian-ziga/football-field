@@ -61,7 +61,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        // --- Shift points ---
+        // --- Shift points --- not shifted anymore, name kept from previous versions
         const shiftedPoints = allPoints.map(([x, y, z]) => [x, y, z]);
 
         const heights = shiftedPoints.map(p => p[2]);
@@ -118,7 +118,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         const xs = shiftedPoints.map(p => p[0]);
         const ys = shiftedPoints.map(p => p[1]);
         const marginX = 3;
-        const marginY = 5;
+        const marginY = 4;
         const minX = Math.min(...xs) - marginX;
         const maxX = Math.max(...xs) + marginX;
         const minY = Math.min(...ys) - marginY;
