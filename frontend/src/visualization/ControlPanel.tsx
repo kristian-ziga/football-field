@@ -42,7 +42,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
 
     const allPoints = getAllPoints();
 
-    const minRadiusMax = allPoints.length > 50 ? 25 : 7;
+    const minRadiusMax = allPoints.length > 50 ? 15 : 7;
 
     const lowestPoint = Math.min(...allPoints.map(([_, __, z]) => z)) * 100;
     const highestPoint = Math.max(...allPoints.map(([_, __, z]) => z)) * 100;
@@ -67,7 +67,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     <Slider
                         value={zMultiplier}
                         min={1}
-                        max={40}
+                        max={30}
                         onChange={(_, value) => setZMultiplier(value)}
                         style={{ flexGrow: 1 }}
                     />
@@ -88,8 +88,8 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     <span style={{ flexShrink: 0 }}>Max Radius: {maxRadius}</span>
                     <Slider
                         value={maxRadius}
-                        min={5}
-                        max={45}
+                        min={9}
+                        max={40}
                         onChange={(_, value) => setMaxRadius(value)}
                         style={{ flexGrow: 1 }}
                     />
@@ -100,7 +100,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                     <Slider
                         value={xFactor}
                         min={1}
-                        max={12}
+                        max={10}
                         onChange={(_, value) => setXFactor(value)}
                         style={{ flexGrow: 1 }}
                     />
