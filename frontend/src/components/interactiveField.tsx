@@ -202,6 +202,26 @@ export default function InteractiveField({ lineValidations }: InteractiveFootbal
                     display: "block",
                 }}
             />
+
+            <div
+                style={{
+                position: "absolute",
+                top: "50%",
+                width: "100%",
+                transform: "translateY(-50%)",
+
+                display: "flex",
+                justifyContent: "center",
+                gap: "30%",
+
+                fontSize: "clamp(3rem, 20vw, 14rem)",
+                fontWeight: "bold",
+                color: "rgb(24, 51, 30)",
+                }}
+            >
+                <div>L</div>
+                <div>R</div>
+            </div>
         </div>
     );
 }
