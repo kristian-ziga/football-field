@@ -148,6 +148,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     }
 
     const angleTolerance = 0.12;
+    // in length it is 12 cm but 6 shorter or longer so together 12cm range of error
     const lengthTolerance = 0.12;
     const additionalArcTolerance = 0.2;
 
@@ -329,14 +330,14 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                 //console.log(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
             } else if (line.name.includes("Penalty Area Left Line") || line.name.includes("Penalty Area Right Line")) {
                 if (line.name.includes("Left Penalty Area")) {
-                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    const x = (mainPoints[line.points[2]][0] + mainPoints[line.points[3]][0]) / 2;
                     length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], 
-                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, leftLineHeightAproximation(x)],
+                        [x, (mainPoints[line.points[2]][1] + mainPoints[line.points[3]][1]) / 2, leftLineHeightAproximation(x)],
                         mainPoints[line.points[3]], mainPoints[line.points[1]]]);
                 } else {
-                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    const x = (mainPoints[line.points[2]][0] + mainPoints[line.points[3]][0]) / 2;
                     length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]],
-                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, rightLineHeightAproximation(x)],
+                        [x, (mainPoints[line.points[2]][1] + mainPoints[line.points[3]][1]) / 2, rightLineHeightAproximation(x)],
                         mainPoints[line.points[3]], mainPoints[line.points[1]]]);
                 }
 
@@ -347,7 +348,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             } 
         
             const diffLength = diffInLengths(length + 0.12, desiredLength)
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
+            const newLengthTolerance = lengthTolerance + 0.02; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them, this is not ideal but works for now
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, newLengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, newLengthTolerance), 
                 angleOK: isLengthOverMargin(xAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), enabled: true});
             continue;
         }
