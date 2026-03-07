@@ -357,12 +357,17 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             const originalVisible = smoothMesh.visible;
 
             smoothMesh.visible = true;
+            const light = new THREE.DirectionalLight(0xffffff, 1.3);
+            light.position.set(0, 200, 0);
+            scene.add(light);
 
             updateSurfaceColors(false);
             await saveRenderToImage(false);
 
             updateSurfaceColors(true);
             await saveRenderToImage(true);
+
+            scene.remove(light);
 
             updateSurfaceColors(showHeatMap);
             smoothMesh.visible = originalVisible;
