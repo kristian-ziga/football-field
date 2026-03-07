@@ -266,11 +266,11 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         }
 
         async function exportTopViewImages(isHeatmap: boolean) {
-            const imageWidth = 1600;
+            const imageWidth = 1400;
             const imageHeight = 900;
 
             const aspect = imageWidth / imageHeight;
-            const frustumSize = Math.max(width, depth);
+            const frustumSize = Math.max(width, depth) * 0.8;
 
             const topCamera = new THREE.OrthographicCamera(
                 (-frustumSize * aspect) / 2,

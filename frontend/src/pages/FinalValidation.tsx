@@ -5,7 +5,7 @@ import { firstValue, getValidations, secondValue, touchlineValue } from "./Measu
 
 
 export default function FinalValidation() {
-    const { getMainPoints } = useAppStorage();
+    const { getMainPoints, topViewHeatmapImage, topViewImage } = useAppStorage();
     const navigate = useNavigate();
     const mainPoints = getMainPoints();
     const lineValidations = getValidations(mainPoints);
@@ -168,8 +168,26 @@ export default function FinalValidation() {
                             maxWidth: window.innerWidth < 850 ? "100vw" : "75vw",
                             backgroundColor: "gray",
                             padding: "1rem",
-                            fontSize: "clamp(1.0rem, 6vw, 2.2rem)",
+                            fontSize: "clamp(1.0rem, 6vw, 2.2rem)"
                         }}>
+                    {topViewImage && (
+                        <div style={{ display: "flex", justifyContent: "center", paddingBottom: "1rem" }}>
+                            <img
+                                src={topViewImage}
+                                alt="Top View"
+                                style={{ maxWidth: "80%", height: "auto" }}
+                            />
+                        </div>
+                    )}
+                    {topViewHeatmapImage && (
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                            <img
+                                src={topViewHeatmapImage}
+                                alt="Top View Heatmap"
+                                style={{ maxWidth: "80%", height: "auto" }}
+                            />
+                        </div>
+                    )}
                     <div
                         style={{
                             display: "grid",
@@ -190,7 +208,7 @@ export default function FinalValidation() {
                             </div>
                             ))}
                         Length: {getLengthOfField()}, Width: {getWidthOfField()}
-
+                        
                         <div>{haveValidationIssues() && "Line validation issues:"}</div>
                     </div>
                     <div
@@ -257,7 +275,8 @@ export default function FinalValidation() {
                     flexWrap: "wrap",
                     flexDirection: "row",
                     gap: "1rem",
-                    justifyContent: "space-between", paddingLeft: "2rem", paddingRight: "2rem"}}>
+                    justifyContent: "space-between", 
+                    paddingLeft: "2rem", paddingRight: "2rem",  paddingBottom: "3rem"}}>
                 <Button  
                     variant="contained"
                     onClick={handleBack}
