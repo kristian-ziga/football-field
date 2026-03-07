@@ -238,8 +238,9 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
             const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
             const diffLength = diffInLengths(length, 0)
-        
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diameterhOver, lengthTolerance), lengthOverMargin: lengthOverMargin(diameterhOver, lengthTolerance), 
+            
+            const newLengthTolerance = lengthTolerance + 0.02; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diameterhOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterhOver, newLengthTolerance), 
                 angleOK: isLengthOverMargin(diffLength, lengthTolerance), angleOverMargin: lengthOverMargin(diffLength, lengthTolerance), enabled: true});
             continue;
         }
