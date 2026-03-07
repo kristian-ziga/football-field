@@ -91,17 +91,19 @@ export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValid
 
 export function getValidations(mainPoints: number[][]): LineValidation[] {
     const linesToValidate = [
-        {name: "Upper Touchline", points: [5, 30], isHorizontal: true}, 
+        {name: "Upper Touchline", points: [5, 30, 17], isHorizontal: true}, 
         {name: "Upper Touchline With Middle", points: [17, 5, 30], isHorizontal: true},
-        {name: "Lower Touchline", points: [0, 25], isHorizontal: true}, 
+        {name: "Lower Touchline", points: [0, 25, 13], isHorizontal: true}, 
         {name: "Lower Touchline With Middle", points: [13, 0, 25], isHorizontal: true},
-        {name: "Halfline", points: [13, 17], isHorizontal: false},
+
+        {name: "Halfline", points: [13, 17, 14, 15, 16], isHorizontal: false},
         {name: "Centre Circle", points: [15, 14, 16], isHorizontal: false},
         {name: "Centre Point", points: [15], isHorizontal: false},
         {name: "Left Penalty Point", points: [8, 2, 3], isHorizontal: false}, 
         {name: "Right Penalty Point", points: [22, 27, 28], isHorizontal: false},
-        {name: "Left Goal Line", points: [0, 5], isHorizontal: false},
-        {name: "Right Goal Line", points: [25, 30], isHorizontal: false},
+
+        {name: "Left Goal Line", points: [0, 5, 1, 2, 3, 4], isHorizontal: false},
+        {name: "Right Goal Line", points: [25, 30, 26, 27, 28, 29], isHorizontal: false},
         {name: "Left Goal Area Left Line", points: [2, 3], isHorizontal: false},
         {name: "Right Goal Area Left Line", points: [24, 23], isHorizontal: false},
         {name: "Left Goal Area Right Line", points: [6, 7], isHorizontal: false},
@@ -110,10 +112,10 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         {name: "Right Goal Area Upper Line", points: [23, 28], isHorizontal: true},
         {name: "Left Goal Area Lower Line", points: [2, 7], isHorizontal: true},
         {name: "Right Goal Area Lower Line", points: [24, 27], isHorizontal: true},
-        {name: "Left Penalty Area Left Line", points: [1, 4], isHorizontal: false},
-        {name: "Right Penalty Area Left Line", points: [21, 18], isHorizontal: false},
-        {name: "Left Penalty Area Right Line", points: [9, 12], isHorizontal: false},
-        {name: "Right Penalty Area Right Line", points: [26, 29], isHorizontal: false},
+        {name: "Left Penalty Area Left Line", points: [1, 4, 2, 3], isHorizontal: false},
+        {name: "Right Penalty Area Left Line", points: [18, 21, 19, 20], isHorizontal: false},
+        {name: "Left Penalty Area Right Line", points: [9, 12, 10 , 11], isHorizontal: false},
+        {name: "Right Penalty Area Right Line", points: [26, 29, 27, 28], isHorizontal: false},
         {name: "Left Penalty Area Upper Line", points: [4, 9], isHorizontal: true},
         {name: "Right Penalty Area Upper Line", points: [18, 29], isHorizontal: true},
         {name: "Left Penalty Area Lower Line", points: [1, 12], isHorizontal: true},
@@ -127,6 +129,22 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         const dy = y1 - y2;
 
         return Math.sqrt(dx ** 2 + dy ** 2);
+    }
+
+    function lineLengthWithHeight(x1: number, y1: number, z1: number, x2: number, y2: number, z2: number): number {
+        const dx = x1 - x2;
+        const dy = y1 - y2;
+        const dz = z1 - z2;
+
+        return Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2);
+    }
+
+    function lengthOfPoints(points: number[][]): number {
+        let totalLength = 0;
+        for (let i = 0; i < points.length - 1; i++) {
+            totalLength += lineLengthWithHeight(points[i][0], points[i][1], points[i][2], points[i + 1][0], points[i + 1][1], points[i + 1][2]);
+        }
+        return totalLength;
     }
 
     const angleTolerance = 0.12;
@@ -149,6 +167,44 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     }
 
     const resultOfLineValidation: LineValidation[] = [];
+
+    function leftLineHeightAproximation(x: number): number {
+        // approximation of height of left line based on x coordinate, because of different ranges
+        const leftPenaltyPoint = linesToValidate.find(line => line.name === "Left Penalty Point");
+        const centrePoint = linesToValidate.find(line => line.name === "Centre Point");
+        if (!leftPenaltyPoint || !centrePoint) return 0;
+        
+        const x1 = mainPoints[leftPenaltyPoint.points[0]][0];
+        const z1 = mainPoints[leftPenaltyPoint.points[0]][2];
+        const x2 = mainPoints[centrePoint.points[0]][0];
+        const z2 = mainPoints[centrePoint.points[0]][2];
+
+        // avoids division by zero
+        if (x1 === x2) return z1;
+
+        const t = (x - x1) / (x2 - x1);
+
+        return z1 + t * (z2 - z1);
+    }
+
+    function rightLineHeightAproximation(x: number): number {
+        // approximation of height of right line based on x coordinate, because of different ranges
+        const rightPenaltyPoint = linesToValidate.find(line => line.name === "Right Penalty Point");
+        const centrePoint = linesToValidate.find(line => line.name === "Centre Point");
+        if (!rightPenaltyPoint || !centrePoint) return 0;
+        
+        const x1 = mainPoints[rightPenaltyPoint.points[0]][0];
+        const z1 = mainPoints[rightPenaltyPoint.points[0]][2];
+        const x2 = mainPoints[centrePoint.points[0]][0];
+        const z2 = mainPoints[centrePoint.points[0]][2];
+
+        // avoids division by zero
+        if (x1 === x2) return z1;
+
+        const t = (x - x1) / (x2 - x1);
+
+        return z1 + t * (z2 - z1);
+    }
     
     // length and angle naming is mainly for straight lines, in points or other situations they may be used for other purpose 
     for (let i = 0; i < linesToValidate.length; i++) {
@@ -174,7 +230,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         }
 
         if (line.name.includes("Centre Circle")) {
-            const diameter = lineLength(mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], mainPoints[line.points[2]][0], mainPoints[line.points[2]][1]);
+            const diameter = lengthOfPoints([mainPoints[line.points[1]], mainPoints[line.points[0]], mainPoints[line.points[2]]]);
             const diameterhOver = diffInLengths(diameter + 0.12, 18.30)
 
             // how much off is middle point from middle of circle defined by two outer points
@@ -211,12 +267,12 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         }
 
         if (line.isHorizontal) {
-            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
+            let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
             const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1],  mainPoints[line.points[1]][1]);
             let desiredLength = 0;
             
             if (line.name.includes("Touchline")) {
-               
+                length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[1]]]);
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
                 resultOfLineValidation.push({name: line.name, lengthOK: 110 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 100 - lengthTolerance/2, 
                     lengthOverMargin: length + 0.12, 
@@ -233,20 +289,57 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                 angleOK: isLengthOverMargin(yAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(yAxisDiff, angleTolerance), enabled: true});
             continue;
         } else {
-            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
+            let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
             const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0],  mainPoints[line.points[1]][0]);
             let desiredLength = 0;
             if (line.name == "Halfline" || line.name == "Left Goal Line" || line.name == "Right Goal Line") {
+                if (line.name == "Halfline") {
+                    length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[3]], mainPoints[line.points[4]], mainPoints[line.points[1]]]);
+                } else if (line.name == "Left Goal Line") {
+                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[3]], 
+                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, leftLineHeightAproximation(x)],
+                        mainPoints[line.points[4]], mainPoints[line.points[5]], mainPoints[line.points[1]]]);
+                } else if (line.name == "Right Goal Line") {
+                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[3]], 
+                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, rightLineHeightAproximation(x)],
+                        mainPoints[line.points[4]], mainPoints[line.points[5]], mainPoints[line.points[1]]]);
+                }
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
                 resultOfLineValidation.push({name: line.name, lengthOK: 75 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 64 - lengthTolerance/2, lengthOverMargin: length + 0.12, 
                     angleOK: isLengthOverMargin(xAxisDiff, angleTolerance), angleOverMargin: lengthOverMargin(xAxisDiff, angleTolerance), enabled: true});
                 continue;
             } else if (line.name.includes("Goal Area Left Line") || line.name.includes("Goal Area Right Line")) {
+                if (line.name.includes("Left Goal Area")) {
+                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    length = lengthOfPoints([mainPoints[line.points[0]],
+                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, leftLineHeightAproximation(x)],
+                        mainPoints[line.points[1]]]);
+                } else {
+                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    length = lengthOfPoints([mainPoints[line.points[0]], 
+                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, rightLineHeightAproximation(x)],
+                       mainPoints[line.points[1]]]);
+                }
+
                 desiredLength = 18.3;
                 //const ddiffLength = diffInLengths(length + 0.12, desiredLength)
                 //console.log(line.name, length, desiredLength, ddiffLength)
                 //console.log(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
             } else if (line.name.includes("Penalty Area Left Line") || line.name.includes("Penalty Area Right Line")) {
+                if (line.name.includes("Left Penalty Area")) {
+                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], 
+                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, leftLineHeightAproximation(x)],
+                        mainPoints[line.points[3]], mainPoints[line.points[1]]]);
+                } else {
+                    const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;
+                    length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]],
+                        [x, (mainPoints[line.points[0]][1] + mainPoints[line.points[1]][1]) / 2, rightLineHeightAproximation(x)],
+                        mainPoints[line.points[3]], mainPoints[line.points[1]]]);
+                }
+
                 desiredLength = 40.3;
                 //const ddiffLength = diffInLengths(length + 0.12, desiredLength)
                 //console.log(line.name, length, desiredLength, ddiffLength)
