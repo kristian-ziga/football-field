@@ -130,10 +130,8 @@ export default function Visualization() {
                 showMeshes={showMeshes}
                 showLines={showLines}
                 showPlanes={showPlanes}
-                setShowMeshes={setShowMeshes}
                 showPoints={showPoints}
                 showHeatMap={showHeatMap}
-                setShowHeatMap={setShowHeatMap}
                 allPoints={allPointsForVisualization}
                 line_order={line_order}
                 setTopViewImage={setTopViewImage}

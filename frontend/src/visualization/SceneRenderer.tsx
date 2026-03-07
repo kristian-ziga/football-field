@@ -18,12 +18,10 @@ interface SceneRendererProps {
     maxRadius: number;
     xFactor: number;
     showMeshes: boolean;
-    setShowMeshes: (v: boolean) => void;
     showLines: boolean;
     showPlanes: boolean;
     showPoints: boolean;
     showHeatMap: boolean;
-    setShowHeatMap: (v: boolean) => void;
     allPoints: number[][];
     line_order: number[][];
     setTopViewImage: (image: string | null) => void;
@@ -38,10 +36,8 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
     showMeshes,
     showLines,
     showPlanes,
-    setShowMeshes,
     showPoints,
     showHeatMap,
-    setShowHeatMap,
     allPoints,
     line_order,
     setTopViewImage,
@@ -192,9 +188,10 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             return den > 0 ? num / den : 0;
             }
 
-            function createIDWSurface() {
+        function createIDWSurface() {
             const geometry = new THREE.PlaneGeometry(width, depth, segments * 2, segments);
             geometry.rotateX(-Math.PI / 2);
+
             const pos = geometry.attributes.position as THREE.BufferAttribute;
 
             for (let i = 0; i < pos.count; i++) {
@@ -205,25 +202,43 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             geometry.computeVertexNormals();
 
             const colors = new Float32Array(pos.count * 3);
-            for (let i = 0; i < pos.count; i++) {
-                const y = getInterpolatedHeight(pos.getX(i), pos.getZ(i)) * zMultiplier;
-                if (showHeatMap) {
-                const t = (y - minHeight * zMultiplier) / ((maxHeight * zMultiplier) - minHeight * zMultiplier);
-                const color = new THREE.Color();
-                color.setHSL(0.44 - 0.37 * t, 0.75, 0.1 + 0.5 * t);
-                colors[i * 3] = color.r;
-                colors[i * 3 + 1] = color.g;
-                colors[i * 3 + 2] = color.b;
-                } else {
-                colors[i * 3] = 0.08; colors[i * 3 + 1] = 0.45; colors[i * 3 + 2] = 0.08;
-                }
-            }
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-            return new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({ vertexColors: true, side: THREE.DoubleSide, shininess: 20 }));
+            return new THREE.Mesh(
+                geometry,
+                new THREE.MeshPhongMaterial({
+                    vertexColors: true,
+                    side: THREE.DoubleSide,
+                    shininess: 20
+                })
+            );
         }
 
         const smoothMesh = createIDWSurface();
+        function updateSurfaceColors(useHeatMap: boolean) {
+            const pos = smoothMesh.geometry.attributes.position as THREE.BufferAttribute;
+            const colorAttr = smoothMesh.geometry.attributes.color as THREE.BufferAttribute;
+
+            const minYScaled = minHeight * zMultiplier;
+            const maxYScaled = maxHeight * zMultiplier;
+            const denom = maxYScaled - minYScaled || 1;
+
+            for (let i = 0; i < pos.count; i++) {
+                const y = pos.getY(i);
+
+                if (useHeatMap) {
+                    const t = (y - minYScaled) / denom;
+                    const color = new THREE.Color();
+                    color.setHSL(0.44 - 0.37 * t, 0.75, 0.1 + 0.5 * t);
+                    colorAttr.setXYZ(i, color.r, color.g, color.b);
+                } else {
+                    colorAttr.setXYZ(i, 0.08, 0.45, 0.08);
+                }
+            }
+
+            colorAttr.needsUpdate = true;
+        }
+        updateSurfaceColors(showHeatMap);
         if (showMeshes || showHeatMap) scene.add(smoothMesh);
 
         function drawLines() {
@@ -265,7 +280,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             });
         }
 
-        async function exportTopViewImages(isHeatmap: boolean) {
+        async function exportTopViewImages() {
             const imageWidth = 1400;
             const imageHeight = 900;
 
@@ -316,7 +331,6 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
 
                 const imageData = ctx.createImageData(imageWidth, imageHeight);
 
-                // Flip vertically because WebGL pixels are bottom-up
                 for (let y = 0; y < imageHeight; y++) {
                     for (let x = 0; x < imageWidth; x++) {
                         const src = ((imageHeight - 1 - y) * imageWidth + x) * 4;
@@ -340,22 +354,24 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
                 }
             };
 
-            if (isHeatmap) {
-                setShowMeshes(false);
-                setShowHeatMap(true);
-                await saveRenderToImage(true);
-                setShowHeatMap(false);
-                setShowMeshes(true);
-            } else {
-                setShowHeatMap(false);
-                await saveRenderToImage(false);
-            }
+            const originalVisible = smoothMesh.visible;
+
+            smoothMesh.visible = true;
+
+            updateSurfaceColors(false);
+            await saveRenderToImage(false);
+
+            updateSurfaceColors(true);
+            await saveRenderToImage(true);
+
+            updateSurfaceColors(showHeatMap);
+            smoothMesh.visible = originalVisible;
 
             renderTarget.dispose();
         }
 
-        exportTopViewImages(false);
-        exportTopViewImages(true);
+        exportTopViewImages();
+
 
         // --- Animate ---
         const animate = () => {
