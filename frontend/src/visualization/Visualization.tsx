@@ -8,7 +8,7 @@ import {Link} from "react-router-dom";
 export default function Visualization() {
     
 
-    const { getAllPoints } = useAppStorage();
+    const { getAllPoints, setTopViewImage, setTopViewHeatmapImage } = useAppStorage();
 
     const allPoints = getAllPoints();
     const allPointsForVisualization = allPoints.map(([x, y, z]) => [x, -y, z]);
@@ -119,6 +119,7 @@ export default function Visualization() {
     const [showPoints, setShowPoints] = useState(false);
     const [showHeatMap, setShowHeatMap] = useState(false);
 
+
     return (
         <div style={{ position: "fixed", inset: 0 }}>
             <SceneRenderer
@@ -129,10 +130,14 @@ export default function Visualization() {
                 showMeshes={showMeshes}
                 showLines={showLines}
                 showPlanes={showPlanes}
+                setShowMeshes={setShowMeshes}
                 showPoints={showPoints}
                 showHeatMap={showHeatMap}
+                setShowHeatMap={setShowHeatMap}
                 allPoints={allPointsForVisualization}
                 line_order={line_order}
+                setTopViewImage={setTopViewImage}
+                setTopViewHeatmapImage={setTopViewHeatmapImage}  
             />
             <ControlsPanel
                 zMultiplier={zMultiplier} setZMultiplier={setZMultiplier}

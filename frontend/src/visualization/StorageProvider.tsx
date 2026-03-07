@@ -11,7 +11,11 @@ interface AppStorage {
     secondaryPointsFile: StoredFile | null;
     mainPoints: number[][];
     secondaryPoints: number[][];
+    topViewImage: string | null;
+    topViewHeatmapImage: string | null;
 
+    setTopViewImage: (image: string | null) => void;
+    setTopViewHeatmapImage: (image: string | null) => void;
     addFile: (file: StoredFile, isMain: boolean) => void;
     removeFile: (isMain: boolean) => void;
     setPoints: (list: number[][], isMain: boolean) => void;
@@ -41,6 +45,30 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const saved = localStorage.getItem("app_secondaryPoints");
         return saved ? JSON.parse(saved) : [];
     });
+
+    const [topViewImage, setTopViewImage] = useState<string | null>(() => {
+        return localStorage.getItem("app_topViewImage");
+    });
+
+    const [topViewHeatmapImage, setTopViewHeatmapImage] = useState<string | null>(() => {
+        return localStorage.getItem("app_topViewHeatmapImage");
+    });
+
+    useEffect(() => {
+        if (topViewImage) {
+            localStorage.setItem("app_topViewImage", topViewImage);
+        } else {
+            localStorage.removeItem("app_topViewImage");
+        }
+    }, [topViewImage]);
+
+    useEffect(() => {
+        if (topViewHeatmapImage) {
+            localStorage.setItem("app_topViewHeatmapImage", topViewHeatmapImage);
+        } else {
+            localStorage.removeItem("app_topViewHeatmapImage");
+        }
+    }, [topViewHeatmapImage]);
 
     useEffect(() => {
         localStorage.setItem("app_mainPointsFile", JSON.stringify(mainPointsFile));
@@ -99,7 +127,7 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     return (
-        <AppStorageContext.Provider value={{ mainPointsFile, secondaryPointsFile, mainPoints, secondaryPoints, addFile, removeFile, setPoints, getMainPoints, getAllPoints }}>
+        <AppStorageContext.Provider value={{ mainPointsFile, secondaryPointsFile, mainPoints, secondaryPoints, topViewImage, topViewHeatmapImage, setTopViewImage, setTopViewHeatmapImage, addFile, removeFile, setPoints, getMainPoints, getAllPoints }}>
             {children}
         </AppStorageContext.Provider>
     );
