@@ -154,6 +154,7 @@ export default function FinalValidation() {
 
             y += imageHeight + 8;
         }
+        y += 5;
 
         drawSectionTitle("Validation Summary");
 
@@ -179,13 +180,13 @@ export default function FinalValidation() {
         drawLabelValue("Length", `${getLengthOfField()} m`);
         drawLabelValue("Width", `${getWidthOfField()} m`);
 
-        y += 4;
+        y += 10;
 
         if (issues.length > 0) {
             drawSectionTitle("Line Validation Issues");
             for (const issue of issues) {
                 const textLines = pdf.splitTextToSize(issue.statusText, contentWidth - 10);
-                const cardHeight = 10 + textLines.length * 5 + 6;
+                const cardHeight = 10 + textLines.length * 1 + 6;
 
                 ensureSpace(cardHeight);
 
