@@ -2,6 +2,7 @@ import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStorage } from "../visualization/StorageProvider";
 import { firstValue, getValidations, secondValue, touchlineValue } from "./MeasurementValidation";
+import { jsPDF } from "jspdf";
 
 
 export default function FinalValidation() {
@@ -50,14 +51,169 @@ export default function FinalValidation() {
     }
 
     const handleExportPdf = () => {
-        {/* TODO: export pdf*/}
-        return;
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 12;
+        const contentWidth = pageWidth - margin * 2;
+
+        let y = margin;
+
+        const ensureSpace = (neededHeight: number) => {
+            if (y + neededHeight > pageHeight - margin) {
+                pdf.addPage();
+                y = margin;
+            }
+        };
+
+        const drawSectionTitle = (text: string) => {
+            ensureSpace(10);
+            pdf.setFont("times", "bold");
+            pdf.setFontSize(22);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(text, margin, y);
+            y += 8;
+        };
+
+        const drawLabelValue = (label: string, value: string, color?: [number, number, number]) => {
+            ensureSpace(7);
+            pdf.setFont("times", "bold");
+            pdf.setFontSize(16);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(`${label}:`, margin, y);
+
+            const labelWidth = pdf.getTextWidth(`${label}: `);
+            pdf.setFont("times", "normal");
+            if (color) {
+                pdf.setTextColor(color[0], color[1], color[2]);
+            } else {
+                pdf.setTextColor(0, 0, 0);
+            }
+            pdf.text(value, margin + labelWidth, y);
+            y += 6;
+        };
+
+        const drawWrappedText = (
+            text: string,
+            x: number,
+            startY: number,
+            maxWidth: number,
+            lineHeight = 5
+        ) => {
+            const lines = pdf.splitTextToSize(text, maxWidth);
+            pdf.text(lines, x, startY);
+            return lines.length * lineHeight;
+        };
+
+        const issues = lineValidations
+            .filter(line =>
+                line.name !== "Upper Touchline With Middle" &&
+                line.name !== "Lower Touchline With Middle"
+            )
+            .map((line) => {
+                const statusText = line.name.includes("Upper Touchline")
+                    ? touchlineValue(line, lineValidations.find(l => l.name === "Upper Touchline With Middle"))
+                    : line.name.includes("Lower Touchline")
+                    ? touchlineValue(line, lineValidations.find(l => l.name === "Lower Touchline With Middle"))
+                    : `${firstValue(line)}, ${secondValue(line)}`;
+
+                return {
+                    name: line.name,
+                    statusText,
+                    isOutOfTolerance: statusText.includes("Out of tolerance")
+                };
+            })
+            .filter(issue => issue.isOutOfTolerance);
+
+        pdf.setFont("times", "bold");
+        pdf.setFontSize(30);
+        pdf.text("FIFA Standard Validation", pageWidth / 2, y, { align: "center" });
+        y += 15;
+
+        if (topViewImage || topViewHeatmapImage) {
+            drawSectionTitle("Field Overview");
+
+            const gap = 6;
+            const imageWidth = (contentWidth - gap) / 2;
+            const imageHeight = 55;
+
+            ensureSpace(imageHeight + 10);
+
+            if (topViewImage) {
+                pdf.addImage(topViewImage, "PNG", margin, y, imageWidth, imageHeight);
+            }
+
+            if (topViewHeatmapImage) {
+                pdf.addImage(topViewHeatmapImage, "PNG", margin + imageWidth + gap, y, imageWidth, imageHeight);
+            }
+
+            y += imageHeight + 8;
+        }
+
+        drawSectionTitle("Validation Summary");
+
+        const fifaIdealValid = !haveValidationIssues() && isFifaIdeal();
+        const fifaStandardValid = !haveValidationIssues() && isFifaStandardized();
+        const ifabStandardValid = !haveValidationIssues() && isIfabStandardized();
+
+        drawLabelValue(
+            "FIFA Ideal (105x68)",
+            fifaIdealValid ? "Valid" : "Invalid",
+            fifaIdealValid ? [21, 128, 61] : [185, 28, 28]
+        );
+        drawLabelValue(
+            "FIFA Standard (100~110x64~75)",
+            fifaStandardValid ? "Valid" : "Invalid",
+            fifaStandardValid ? [21, 128, 61] : [185, 28, 28]
+        );
+        drawLabelValue(
+            "International Standard (90~120x45~90)",
+            ifabStandardValid ? "Valid" : "Invalid",
+            ifabStandardValid ? [21, 128, 61] : [185, 28, 28]
+        );
+        drawLabelValue("Length", `${getLengthOfField()} m`);
+        drawLabelValue("Width", `${getWidthOfField()} m`);
+
+        y += 4;
+
+        if (issues.length > 0) {
+            drawSectionTitle("Line Validation Issues");
+            for (const issue of issues) {
+                const textLines = pdf.splitTextToSize(issue.statusText, contentWidth - 10);
+                const cardHeight = 10 + textLines.length * 5 + 6;
+
+                ensureSpace(cardHeight);
+
+                pdf.setDrawColor(210, 210, 210);
+                pdf.setFillColor(252, 252, 252);
+                pdf.roundedRect(margin, y, contentWidth, cardHeight, 2, 2, "FD");
+
+                pdf.setFont("times", "bold");
+                pdf.setFontSize(16);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(issue.name, margin + 4, y + 7);
+
+                pdf.setFont("times", "normal");
+                pdf.setFontSize(14);
+                pdf.setTextColor(185, 28, 28);
+                drawWrappedText(issue.statusText, margin + 4, y + 14, contentWidth - 8);
+
+                y += cardHeight + 4;
+            }
+        }
+
+        const pdfUrl = pdf.output("bloburl");
+        window.open(pdfUrl, "_blank");
     };
 
    const handleExportTransformedPoints = () => {
         if (!mainPoints || mainPoints.length < 31) return;
 
-        // Build txt content
         const lines: string[] = [];
         for (let i = 0; i < 31; i++) {
             const [x, y, z] = mainPoints[i]; 
@@ -65,7 +221,6 @@ export default function FinalValidation() {
         }
         const content = lines.join("\n") + "\n";
 
-        // Download as .txt
         const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
 
@@ -83,23 +238,20 @@ export default function FinalValidation() {
     };
 
     function haveValidationIssues(): boolean {
-        lineValidations .filter(line =>
-            line.name !== "Upper Touchline With Middle" &&
-            line.name !== "Lower Touchline With Middle"
-        )
-        .map((line) => {
-            const statusText = line.name.includes("Upper Touchline")
-                ? touchlineValue(line, lineValidations.find(l => l.name === "Upper Touchline With Middle"))
-                : line.name.includes("Lower Touchline")
-                ? touchlineValue(line, lineValidations.find(l => l.name === "Lower Touchline With Middle"))
-                : `${firstValue(line)}, ${secondValue(line)}`;
+        return lineValidations
+            .filter(line =>
+                line.name !== "Upper Touchline With Middle" &&
+                line.name !== "Lower Touchline With Middle"
+            )
+            .some((line) => {
+                const statusText = line.name.includes("Upper Touchline")
+                    ? touchlineValue(line, lineValidations.find(l => l.name === "Upper Touchline With Middle"))
+                    : line.name.includes("Lower Touchline")
+                    ? touchlineValue(line, lineValidations.find(l => l.name === "Lower Touchline With Middle"))
+                    : `${firstValue(line)}, ${secondValue(line)}`;
 
-            const isOutOfTolerance = statusText.includes("Out of tolerance");
-
-            if (!isOutOfTolerance) 
-                return true;
-        })
-        return true;
+                return statusText.includes("Out of tolerance");
+            });
     }
 
     function getLengthOfField(): number {
@@ -131,8 +283,8 @@ export default function FinalValidation() {
     function isFifaIdeal(): boolean {
         const lengthOfField = getLengthOfField();
         const widthOfField = getWidthOfField();
-        // +2 / -2 for not ideal measurements
-        return ((lengthOfField > 105 + 2 || lengthOfField > 105 - 2) || (widthOfField > 68 + 2 || widthOfField > 68 - 2));
+        // +0.3 / -0.3 for not ideal measurements
+        return (lengthOfField <= 105 + 0.3 && lengthOfField >= 105 - 0.3 && widthOfField <= 68 + 0.3 && widthOfField >= 68 - 0.3);
     }
 
     function isIfabStandardized(): boolean {
@@ -159,6 +311,7 @@ export default function FinalValidation() {
             paddingBottom: "3rem",
             gap: "clamp(0.5rem, 5vh, 2.5rem)",
             height: "95vh"}}>
+
             <div style={{display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center"}}>
                 <div style={{textAlign: "center", fontSize: "clamp(1.2rem, 8vw, 3rem)",}}>
                     FIFA standard validation
