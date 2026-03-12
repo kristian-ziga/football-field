@@ -51,30 +51,30 @@ export function secondValue(line: LineValidation): string {
     if (line.name.includes("Centre Point")) {
         if (line.angleOK)
             return "Horizontal position: Valid"
-        return `Horizontal position: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)} cm` 
+        return `Horizontal position: Invalid, Out of tolerance by ${(line.angleOverMargin * 100).toFixed(1)} cm` 
     }
 
     if (line.name.includes("Point")) {
         if (line.angleOK)
             return "Angle with the middle of the goal line: Valid"
-        return `Angle with the middle of the goal line: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(2)}°`
+        return `Angle with the middle of the goal line: Invalid, Out of tolerance by ${(line.angleOverMargin).toFixed(2)}°`
     }
 
     if (line.name.includes("Centre Circle")) {
         if (line.angleOK)
             return "Centre of Circle: Valid"
-        return `Centre of Circle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)} cm` 
+        return `Centre of Circle: Invalid, Out of tolerance by ${(line.angleOverMargin * 100).toFixed(1)} cm` 
     }
 
     if (line.name.includes("Penalty Arc")) {
         if (line.angleOK)
             return "Lower point of Arc: Valid"
-        return `Lower point of Arc: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)} cm`
+        return `Lower point of Arc: Invalid, Out of tolerance by ${(line.angleOverMargin * 100).toFixed(1)} cm`
     }   
 
     if (line.angleOK)
         return "Angle: Valid"
-    return `Angle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(2)}°` 
+    return `Angle: Invalid, Out of tolerance by ${(line.angleOverMargin).toFixed(2)}°` 
 }
 
 export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValidation): string {
@@ -159,7 +159,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         return totalLength;
     }
 
-    const angleTolerance = 4;
+    const angleTolerance = 1;
     // in length it is 12 cm but 6 shorter or longer so together 12cm range of error
     const lengthTolerance = 0.12;
     const additionalArcTolerance = 0.2;
@@ -169,8 +169,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         return Math.trunc(res * 1000) / 1000;
     }
 
-    function isLengthOverMargin(diffLength: number, tolerance: number): boolean {
-        return tolerance/2 >= diffLength && diffLength >= -tolerance/2;
+    function isLengthWithinMargin(diffLength: number, tolerance: number): boolean {
+        return Math.abs((diffLength * 100) / 100) <= tolerance / 2;
     }
 
     function lengthOverMargin(diffLength: number, tolerance: number): number {
@@ -179,13 +179,19 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         return tolerance/2 - diffLength;
     }
 
-    function angleOfLine(x1: number, y1: number, x2: number, y2: number, xAxis: boolean): number {
-        let angleInRadians = Math.atan2(y2 - y1, x2 - x1);
-        if (!xAxis) {
-            angleInRadians += Math.PI / 2;
+    function angleOfLine(x1: number, y1: number, x2: number, y2: number, horizontal: boolean): number {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+
+        let angle: number;
+
+        if (horizontal) {
+            angle = Math.atan2(Math.abs(dy), Math.abs(dx));
+        } else {
+            angle = Math.atan2(Math.abs(dx), Math.abs(dy));
         }
-        const angleInDegrees = angleInRadians * (180 / Math.PI);
-        return angleInDegrees;
+
+        return ((angle * (180 / Math.PI)) * 100) / 100;
     }
 
     function angleOverMargin(angle: number, tolerance: number): number {
@@ -194,8 +200,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         return tolerance - angle;
     }
 
-    function isAngleOverMargin(angle: number, tolerance: number): boolean {
-        return tolerance >= angle && angle >= -tolerance;
+    function isAngleWithinMargin(angle: number, tolerance: number): boolean {
+        return Math.abs((angle * 100) / 100) <= tolerance;
     }
 
     const resultOfLineValidation: LineValidation[] = [];
@@ -248,16 +254,16 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             // 0.06 width of line
             const diffLength = diffInLengths(length + 0.06, 11)
             const angle = angleOfLine(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1], true);
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
-                angleOK: isAngleOverMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
+                angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
             continue;
         }
 
         if (line.name.includes("Centre Point")) {
             const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0], 0);
             const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1], 0);
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(xAxisDiff, lengthTolerance / 3), lengthOverMargin: lengthOverMargin(xAxisDiff, lengthTolerance / 3), 
-                angleOK: isLengthOverMargin(yAxisDiff, lengthTolerance / 3), angleOverMargin: lengthOverMargin(yAxisDiff, lengthTolerance / 3), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(xAxisDiff, lengthTolerance / 3), lengthOverMargin: lengthOverMargin(xAxisDiff, lengthTolerance / 3), 
+                angleOK: isLengthWithinMargin(yAxisDiff, lengthTolerance / 3), angleOverMargin: lengthOverMargin(yAxisDiff, lengthTolerance / 3), enabled: true});
             continue;
         }
 
@@ -271,8 +277,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const diffLength = diffInLengths(length, 0)
             
             const newLengthTolerance = lengthTolerance + 0.02; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diameterhOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterhOver, newLengthTolerance), 
-                angleOK: isLengthOverMargin(diffLength, lengthTolerance), angleOverMargin: lengthOverMargin(diffLength, lengthTolerance), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diameterhOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterhOver, newLengthTolerance), 
+                angleOK: isLengthWithinMargin(diffLength, lengthTolerance), angleOverMargin: lengthOverMargin(diffLength, lengthTolerance), enabled: true});
             continue;
         }
 
@@ -282,8 +288,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const lengthOverUpper = diffInLengths(lengthUpperPoint + 0.06, 9.15)
             const lengthOverLower = diffInLengths(lengthLowerPoint + 0.06, 9.15)
 
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(lengthOverUpper, lengthTolerance + additionalArcTolerance), lengthOverMargin: lengthOverMargin(lengthOverUpper, lengthTolerance + additionalArcTolerance), 
-                angleOK: isLengthOverMargin(lengthOverLower, lengthTolerance + additionalArcTolerance), angleOverMargin: lengthOverMargin(lengthOverLower, lengthTolerance + additionalArcTolerance), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(lengthOverUpper, lengthTolerance + additionalArcTolerance), lengthOverMargin: lengthOverMargin(lengthOverUpper, lengthTolerance + additionalArcTolerance), 
+                angleOK: isLengthWithinMargin(lengthOverLower, lengthTolerance + additionalArcTolerance), angleOverMargin: lengthOverMargin(lengthOverLower, lengthTolerance + additionalArcTolerance), enabled: true});
             continue;
         }   
 
@@ -294,8 +300,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0], middle[0]);
             const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1], middle[1]);
         
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(xAxisDiff, lengthTolerance / 3), lengthOverMargin: lengthOverMargin(xAxisDiff, lengthTolerance / 3), 
-                angleOK: isLengthOverMargin(yAxisDiff, lengthTolerance / 3), angleOverMargin: lengthOverMargin(yAxisDiff, lengthTolerance / 3), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(xAxisDiff, lengthTolerance / 3), lengthOverMargin: lengthOverMargin(xAxisDiff, lengthTolerance / 3), 
+                angleOK: isLengthWithinMargin(yAxisDiff, lengthTolerance / 3), angleOverMargin: lengthOverMargin(yAxisDiff, lengthTolerance / 3), enabled: true});
             continue;
         }
 
@@ -306,13 +312,12 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             
             if (line.name.includes("Touchline")) {
                 length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[1]]]);
-                console.log(line.name, angle);
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
 
 
                 resultOfLineValidation.push({name: line.name, lengthOK: 110 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 100 - lengthTolerance/2, 
                     lengthOverMargin: length + 0.12, 
-                    angleOK: isAngleOverMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
+                    angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
                 continue;
             } else if (line.name.includes("Goal Area Upper Line") || line.name.includes("Goal Area Lower Line")) {
                 desiredLength = 5.5;
@@ -321,8 +326,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             } 
             const diffLength = diffInLengths(length + 0.12, desiredLength)
             
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
-                angleOK: isAngleOverMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diffLength, lengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, lengthTolerance), 
+                angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
             continue;
         } else {
             let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
@@ -345,7 +350,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                 }
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
                 resultOfLineValidation.push({name: line.name, lengthOK: 75 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 64 - lengthTolerance/2, lengthOverMargin: length + 0.12, 
-                    angleOK: isAngleOverMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
+                    angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
                 continue;
             } else if (line.name.includes("Goal Area Left Line") || line.name.includes("Goal Area Right Line")) {
                 if (line.name.includes("Left Goal Area")) {
@@ -385,8 +390,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         
             const diffLength = diffInLengths(length + 0.12, desiredLength)
             const newLengthTolerance = lengthTolerance + 0.02; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them, this is not ideal but works for now
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthOverMargin(diffLength, newLengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, newLengthTolerance), 
-                angleOK: isAngleOverMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diffLength, newLengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, newLengthTolerance), 
+                angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
             continue;
         }
     }
