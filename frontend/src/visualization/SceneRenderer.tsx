@@ -98,6 +98,105 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         const leftPlane = getPCAPlane(leftPointsScene);
         const rightPlane = getPCAPlane(rightPointsScene);
 
+        async function exportTopViewImages() {
+            drawLines();
+            
+            const imageWidth = 1400;
+            const imageHeight = 900;
+
+            const aspect = imageWidth / imageHeight;
+            const frustumSize = Math.max(width, depth) * 0.8;
+
+            const topCamera = new THREE.OrthographicCamera(
+                (-frustumSize * aspect) / 2,
+                (frustumSize * aspect) / 2,
+                frustumSize / 2,
+                -frustumSize / 2,
+                0.1,
+                1000
+            );
+
+            const centerX = (minX + maxX) / 2;
+            const centerZ = (minY + maxY) / 2;
+            const maxSurfaceY = maxHeight * zMultiplier;
+
+            topCamera.position.set(centerX, maxSurfaceY + 200, centerZ);
+            topCamera.up.set(0, 0, -1);
+            topCamera.lookAt(centerX, 0, centerZ);
+            topCamera.updateProjectionMatrix();
+
+            const renderTarget = new THREE.WebGLRenderTarget(imageWidth, imageHeight, {
+                samples: 4
+            });
+
+            const pixels = new Uint8Array(imageWidth * imageHeight * 4);
+            const helperCanvas = document.createElement("canvas");
+            helperCanvas.width = imageWidth;
+            helperCanvas.height = imageHeight;
+            const ctx = helperCanvas.getContext("2d");
+            if (!ctx) return;
+
+            const saveRenderToImage = async (isHeatmap: boolean) => {
+                renderer.setRenderTarget(renderTarget);
+                renderer.render(scene, topCamera);
+                renderer.readRenderTargetPixels(
+                    renderTarget,
+                    0,
+                    0,
+                    imageWidth,
+                    imageHeight,
+                    pixels
+                );
+                renderer.setRenderTarget(null);
+
+                const imageData = ctx.createImageData(imageWidth, imageHeight);
+
+                for (let y = 0; y < imageHeight; y++) {
+                    for (let x = 0; x < imageWidth; x++) {
+                        const src = ((imageHeight - 1 - y) * imageWidth + x) * 4;
+                        const dst = (y * imageWidth + x) * 4;
+
+                        imageData.data[dst] = pixels[src];
+                        imageData.data[dst + 1] = pixels[src + 1];
+                        imageData.data[dst + 2] = pixels[src + 2];
+                        imageData.data[dst + 3] = pixels[src + 3];
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                const dataUrl = helperCanvas.toDataURL("image/png");
+
+                if (isHeatmap) {
+                    setTopViewHeatmapImage(dataUrl);
+                } else {
+                    setTopViewImage(dataUrl);
+                }
+            };
+
+            const originalVisible = smoothMesh.visible;
+
+            smoothMesh.visible = true;
+            const light = new THREE.DirectionalLight(0xffffff, 1.3);
+            light.position.set(0, 200, 0);
+            scene.add(light);
+
+            updateSurfaceColors(false);
+            await saveRenderToImage(false);
+
+            updateSurfaceColors(true);
+            await saveRenderToImage(true);
+
+            scene.remove(light);
+
+            updateSurfaceColors(showHeatMap);
+            smoothMesh.visible = originalVisible;
+
+            renderTarget.dispose();
+        }
+
+        exportTopViewImages();
+
         function createPlaneMesh(planeData: { normal: THREE.Vector3; centroid: number[] }, color: number) {
         const geometry = new THREE.PlaneGeometry(120, 80, 40, 40);
         const material = new THREE.MeshStandardMaterial({
@@ -279,104 +378,6 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
                 scene.add(sphere);
             });
         }
-
-        async function exportTopViewImages() {
-            const imageWidth = 1400;
-            const imageHeight = 900;
-
-            const aspect = imageWidth / imageHeight;
-            const frustumSize = Math.max(width, depth) * 0.8;
-
-            const topCamera = new THREE.OrthographicCamera(
-                (-frustumSize * aspect) / 2,
-                (frustumSize * aspect) / 2,
-                frustumSize / 2,
-                -frustumSize / 2,
-                0.1,
-                1000
-            );
-
-            const centerX = (minX + maxX) / 2;
-            const centerZ = (minY + maxY) / 2;
-            const maxSurfaceY = maxHeight * zMultiplier;
-
-            topCamera.position.set(centerX, maxSurfaceY + 200, centerZ);
-            topCamera.up.set(0, 0, -1);
-            topCamera.lookAt(centerX, 0, centerZ);
-            topCamera.updateProjectionMatrix();
-
-            const renderTarget = new THREE.WebGLRenderTarget(imageWidth, imageHeight, {
-                samples: 4
-            });
-
-            const pixels = new Uint8Array(imageWidth * imageHeight * 4);
-            const helperCanvas = document.createElement("canvas");
-            helperCanvas.width = imageWidth;
-            helperCanvas.height = imageHeight;
-            const ctx = helperCanvas.getContext("2d");
-            if (!ctx) return;
-
-            const saveRenderToImage = async (isHeatmap: boolean) => {
-                renderer.setRenderTarget(renderTarget);
-                renderer.render(scene, topCamera);
-                renderer.readRenderTargetPixels(
-                    renderTarget,
-                    0,
-                    0,
-                    imageWidth,
-                    imageHeight,
-                    pixels
-                );
-                renderer.setRenderTarget(null);
-
-                const imageData = ctx.createImageData(imageWidth, imageHeight);
-
-                for (let y = 0; y < imageHeight; y++) {
-                    for (let x = 0; x < imageWidth; x++) {
-                        const src = ((imageHeight - 1 - y) * imageWidth + x) * 4;
-                        const dst = (y * imageWidth + x) * 4;
-
-                        imageData.data[dst] = pixels[src];
-                        imageData.data[dst + 1] = pixels[src + 1];
-                        imageData.data[dst + 2] = pixels[src + 2];
-                        imageData.data[dst + 3] = pixels[src + 3];
-                    }
-                }
-
-                ctx.putImageData(imageData, 0, 0);
-
-                const dataUrl = helperCanvas.toDataURL("image/png");
-
-                if (isHeatmap) {
-                    setTopViewHeatmapImage(dataUrl);
-                } else {
-                    setTopViewImage(dataUrl);
-                }
-            };
-
-            const originalVisible = smoothMesh.visible;
-
-            smoothMesh.visible = true;
-            const light = new THREE.DirectionalLight(0xffffff, 1.3);
-            light.position.set(0, 200, 0);
-            scene.add(light);
-
-            updateSurfaceColors(false);
-            await saveRenderToImage(false);
-
-            updateSurfaceColors(true);
-            await saveRenderToImage(true);
-
-            scene.remove(light);
-
-            updateSurfaceColors(showHeatMap);
-            smoothMesh.visible = originalVisible;
-
-            renderTarget.dispose();
-        }
-
-        exportTopViewImages();
-
 
         // --- Animate ---
         const animate = () => {
