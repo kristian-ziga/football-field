@@ -136,7 +136,7 @@ export default function FinalValidation() {
         y += 15;
 
         if (topViewImage || topViewHeatmapImage) {
-            drawSectionTitle("Field Overview");
+            drawSectionTitle("Pitch Overview");
 
             const gap = 6;
             const imageWidth = (contentWidth - gap) / 2;

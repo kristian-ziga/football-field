@@ -365,7 +365,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                        mainPoints[line.points[1]]]);
                 }
 
-                desiredLength = 18.3;
+                desiredLength = 18.32;
                 //const ddiffLength = diffInLengths(length + 0.12, desiredLength)
                 //console.log(line.name, length, desiredLength, ddiffLength)
                 //console.log(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
@@ -382,7 +382,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                         mainPoints[line.points[3]], mainPoints[line.points[1]]]);
                 }
 
-                desiredLength = 40.3;
+                desiredLength = 40.32;
                 //const ddiffLength = diffInLengths(length + 0.12, desiredLength)
                 //console.log(line.name, length, desiredLength, ddiffLength)
                 //console.log(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])

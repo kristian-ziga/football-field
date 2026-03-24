@@ -73,7 +73,7 @@ export default function MeasureGrid() {
                         textAlign: "center",
                     }}
                 >
-                    Football field measured successfully
+                    Football pitch measured successfully
                 </DialogTitle>
                 <DialogActions>
                     <Button variant="contained" className="custom-close-button" onClick={handleClose} sx={{

@@ -40,7 +40,7 @@ export default function Home() {
                         border: "1px solid",
                     }}
                 >
-                    MEASURE FIELD
+                    MEASURE PITCH
                 </Button>
 
                 <Button
