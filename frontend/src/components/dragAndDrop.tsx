@@ -32,64 +32,6 @@ export function txtParser(text: string): number[][] {
     return points;
 }
 
-export function transformPoints(mainPoints: number[][], secondaryPoints?: number[][]) {
-    const transformedPoints1: number[][] = [];
-    const transformedPoints2: number[][] = [];
-    let transformedPoints3: number[][] = [];
-
-    const diffX = mainPoints[15][0];
-    const diffY = mainPoints[15][1];
-    const diffZ = mainPoints[15][2];
-
-    mainPoints.forEach(point => {
-        const [x, y, z] = point;
-        transformedPoints1.push([x - diffX, y - diffY, z - diffZ])
-    })
-    if (secondaryPoints) {
-        secondaryPoints.forEach(point => {
-            const [x, y, z] = point;
-            transformedPoints1.push([x - diffX, y - diffY, z - diffZ])
-        })
-    }
-
-    const middle_point_height = transformedPoints1[15][2];
-    transformedPoints1.forEach(point => {
-        const [x, y, z] = point;
-        transformedPoints2.push([x, y, z - middle_point_height])
-    })
-
-    transformedPoints3 = rotateField(transformedPoints2, transformedPoints2[13], transformedPoints1[17]);
-    return transformedPoints3;
-}
-
-export function rotateField(points: number[][], firstPoint: number[], secondPoint: number[]): number[][] {
-    const newPoints: number[][] = [];
-
-    const dx = firstPoint[0] - secondPoint[0];
-    const dy = firstPoint[1] - secondPoint[1];
-
-    const angle = Math.atan2(dy, dx);
-
-    // Math.Pi / 2 because of finding angle of the middle line to vertical y-axis
-    const rotationNeeded = Math.PI / 2 - angle;
-
-    points.forEach(point => {
-        newPoints.push(rotatePoint(point[0], point[1], point[2], rotationNeeded))
-    })
-
-    return newPoints;
-}
-
-export function rotatePoint(x: number, y: number, z: number, angle: number): number[] {
-    const round3 = (n: number) => Number(n.toFixed(3));
-
-    const newX = round3(x * Math.cos(angle) - y * Math.sin(angle));
-    const newY = round3(y * Math.cos(angle) + x * Math.sin(angle));
-    const newZ = round3(z);
-
-    return [newX, newY, newZ];
-}
-
 type DragAndDropProps = {
     isMain: boolean;
 };

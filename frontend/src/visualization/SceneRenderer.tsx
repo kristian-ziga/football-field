@@ -11,6 +11,8 @@ import {
   createCurvedArc,
   createPenaltyPoint
 } from "./FieldLines";
+import { firstValue, lineOrder, type LineValidation, secondValue, touchlineValue } from "../pages/MeasurementValidation";
+import { useAppStorage } from "./StorageProvider";
 
 interface SceneRendererProps {
     zMultiplier: number;
@@ -24,8 +26,6 @@ interface SceneRendererProps {
     showHeatMap: boolean;
     allPoints: number[][];
     line_order: number[][];
-    setTopViewImage: (image: string | null) => void;
-    setTopViewHeatmapImage: (image: string | null) => void;
 }
 
 const SceneRenderer: React.FC<SceneRendererProps> = ({
@@ -40,10 +40,12 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
     showHeatMap,
     allPoints,
     line_order,
-    setTopViewImage,
-    setTopViewHeatmapImage
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const sceneRef = useRef<THREE.Scene | null>(null);
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+    const dataRef = useRef<any>(null);
+    const { setSceneData } = useAppStorage();
 
     useEffect(() => {
         if (!canvasRef.current) return;
@@ -65,7 +67,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        // --- Shift points --- not shifted anymore, name kept from previous versions
+        // --- Shift points ---
         const shiftedPoints = allPoints.map(([x, y, z]) => [x, y, z]);
 
         const heights = shiftedPoints.map(p => p[2]);
@@ -98,114 +100,15 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         const leftPlane = getPCAPlane(leftPointsScene);
         const rightPlane = getPCAPlane(rightPointsScene);
 
-        async function exportTopViewImages() {
-            drawLines();
-            
-            const imageWidth = 1400;
-            const imageHeight = 900;
-
-            const aspect = imageWidth / imageHeight;
-            const frustumSize = Math.max(width, depth) * 0.8;
-
-            const topCamera = new THREE.OrthographicCamera(
-                (-frustumSize * aspect) / 2,
-                (frustumSize * aspect) / 2,
-                frustumSize / 2,
-                -frustumSize / 2,
-                0.1,
-                1000
-            );
-
-            const centerX = (minX + maxX) / 2;
-            const centerZ = (minY + maxY) / 2;
-            const maxSurfaceY = maxHeight * zMultiplier;
-
-            topCamera.position.set(centerX, maxSurfaceY + 200, centerZ);
-            topCamera.up.set(0, 0, -1);
-            topCamera.lookAt(centerX, 0, centerZ);
-            topCamera.updateProjectionMatrix();
-
-            const renderTarget = new THREE.WebGLRenderTarget(imageWidth, imageHeight, {
-                samples: 4
-            });
-
-            const pixels = new Uint8Array(imageWidth * imageHeight * 4);
-            const helperCanvas = document.createElement("canvas");
-            helperCanvas.width = imageWidth;
-            helperCanvas.height = imageHeight;
-            const ctx = helperCanvas.getContext("2d");
-            if (!ctx) return;
-
-            const saveRenderToImage = async (isHeatmap: boolean) => {
-                renderer.setRenderTarget(renderTarget);
-                renderer.render(scene, topCamera);
-                renderer.readRenderTargetPixels(
-                    renderTarget,
-                    0,
-                    0,
-                    imageWidth,
-                    imageHeight,
-                    pixels
-                );
-                renderer.setRenderTarget(null);
-
-                const imageData = ctx.createImageData(imageWidth, imageHeight);
-
-                for (let y = 0; y < imageHeight; y++) {
-                    for (let x = 0; x < imageWidth; x++) {
-                        const src = ((imageHeight - 1 - y) * imageWidth + x) * 4;
-                        const dst = (y * imageWidth + x) * 4;
-
-                        imageData.data[dst] = pixels[src];
-                        imageData.data[dst + 1] = pixels[src + 1];
-                        imageData.data[dst + 2] = pixels[src + 2];
-                        imageData.data[dst + 3] = pixels[src + 3];
-                    }
-                }
-
-                ctx.putImageData(imageData, 0, 0);
-
-                const dataUrl = helperCanvas.toDataURL("image/png");
-
-                if (isHeatmap) {
-                    setTopViewHeatmapImage(dataUrl);
-                } else {
-                    setTopViewImage(dataUrl);
-                }
-            };
-
-            const originalVisible = smoothMesh.visible;
-
-            smoothMesh.visible = true;
-            const light = new THREE.DirectionalLight(0xffffff, 1.3);
-            light.position.set(0, 200, 0);
-            scene.add(light);
-
-            updateSurfaceColors(false);
-            await saveRenderToImage(false);
-
-            updateSurfaceColors(true);
-            await saveRenderToImage(true);
-
-            scene.remove(light);
-
-            updateSurfaceColors(showHeatMap);
-            smoothMesh.visible = originalVisible;
-
-            renderTarget.dispose();
-        }
-
-        exportTopViewImages();
-
         function createPlaneMesh(planeData: { normal: THREE.Vector3; centroid: number[] }, color: number) {
-        const geometry = new THREE.PlaneGeometry(120, 80, 40, 40);
-        const material = new THREE.MeshStandardMaterial({
-            color,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.3,
-            wireframe: true
-        });
+            const geometry = new THREE.PlaneGeometry(120, 80, 40, 40);
+            const material = new THREE.MeshStandardMaterial({
+                color,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
             const mesh = new THREE.Mesh(geometry, material);
             const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), planeData.normal);
             mesh.setRotationFromQuaternion(quaternion);
@@ -238,8 +141,8 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             const points: number[][] = [];
             for (let zVal of zScene) {
                 for (let x = xRange[0]; x <= xRange[1]; x += 4) {
-                const y = (-planeData.normal.x * x - planeData.normal.z * zVal - planeData.plane.constant) / planeData.normal.y;
-                points.push([x, y, zVal]);
+                    const y = (-planeData.normal.x * x - planeData.normal.z * zVal - planeData.plane.constant) / planeData.normal.y;
+                    points.push([x, y, zVal]);
                 }
             }
             return points;
@@ -273,19 +176,19 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             if (shiftedPoints.length > 31 && maxRadius <= 45) {
                 const extraPoints = lanePos <= 0 ? fakeRight : fakeLeft;
                 for (const [bx, by, bz] of extraPoints) {
-                const dx = (x - bx) / xFactor;
-                const dz = z - by;
-                let dist = Math.sqrt(dx * dx + dz * dz);
-                if (dist < minRadius) dist = minRadius;
-                if (dist > maxRadius) continue;
-                const w = 1 / Math.pow(dist, power);
-                num += bz * w;
-                den += w * 1.2;
+                    const dx = (x - bx) / xFactor;
+                    const dz = z - by;
+                    let dist = Math.sqrt(dx * dx + dz * dz);
+                    if (dist < minRadius) dist = minRadius;
+                    if (dist > maxRadius) continue;
+                    const w = 1 / Math.pow(dist, power);
+                    num += bz * w;
+                    den += w * 1.2;
                 }
             }
 
             return den > 0 ? num / den : 0;
-            }
+        }
 
         function createIDWSurface() {
             const geometry = new THREE.PlaneGeometry(width, depth, segments * 2, segments);
@@ -344,11 +247,11 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             let counter = 0;
             for (const points of line_order) {
                 const mesh = createLine(
-                shiftedPoints[points[0]],
-                shiftedPoints[points[1]],
-                counter < 12,
-                getInterpolatedHeight,
-                zMultiplier
+                    shiftedPoints[points[0]],
+                    shiftedPoints[points[1]],
+                    counter < 12,
+                    getInterpolatedHeight,
+                    zMultiplier
                 );
                 scene.add(mesh);
                 counter++;
@@ -364,11 +267,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             scene.add(createPenaltyPoint(shiftedPoints[22], getInterpolatedHeight, zMultiplier));
         }
 
-        if (showLines) {    
-            const clonedGeometry = smoothMesh.geometry.clone();
-            clonedGeometry.translate(0, 0.5, 0);
-            drawLines();
-        }
+        if (showLines) drawLines();
 
         // --- Points ---
         if (showPoints) {
@@ -379,8 +278,33 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             });
         }
 
+        sceneRef.current = scene;
+        rendererRef.current = renderer;
+
+        dataRef.current = {
+            shiftedPoints,
+            getInterpolatedHeight,
+            zMultiplier,
+            minX,
+            maxX,
+            minY,
+            maxY,
+            width,
+            depth,
+            minHeight,
+            maxHeight,
+            smoothMesh,
+            renderer,
+            scene
+        };
+
+
+        setSceneData(dataRef);
+
         // --- Animate ---
+        let animating = true;
         const animate = () => {
+            if (!animating) return;
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
@@ -396,9 +320,8 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         window.addEventListener("resize", handleResize);
 
         return () => {
+            animating = false;
             window.removeEventListener("resize", handleResize);
-            renderer.dispose();
-            scene.clear();
         };
     }, [
         allPoints,
@@ -414,7 +337,231 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
         showHeatMap
     ]);
 
-  return <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />;
+    return <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />;
 };
 
+
 export default SceneRenderer;
+
+export const exportTopViewImages = async (
+    linesToRed: LineValidation[],
+    dataRef: React.RefObject<any>,
+    setTopViewImage: (image: string | null) => void,
+    setTopViewHeatmapImage: (image: string | null) => void
+) => {
+    console.log("Exporting top view images...");
+    const data = dataRef.current;
+    if (!data) return;
+
+    const {
+        scene,
+        renderer,
+        shiftedPoints,
+        getInterpolatedHeight,
+        zMultiplier,
+        minX,
+        maxX,
+        minY,
+        maxY,
+        width,
+        depth,
+        minHeight,
+        maxHeight,
+        smoothMesh
+    } = data;
+
+    const updateSurfaceColors = (useHeatMap: boolean) => {
+        if (!smoothMesh) return;
+        const pos = smoothMesh.geometry.attributes.position as THREE.BufferAttribute;
+        const colorAttr = smoothMesh.geometry.attributes.color as THREE.BufferAttribute;
+
+        const minYScaled = minHeight * zMultiplier;
+        const maxYScaled = maxHeight * zMultiplier;
+        const denom = maxYScaled - minYScaled || 1;
+
+        for (let i = 0; i < pos.count; i++) {
+            const y = pos.getY(i);
+
+            if (useHeatMap) {
+                const t = (y - minYScaled) / denom;
+                const color = new THREE.Color();
+                color.setHSL(0.44 - 0.37 * t, 0.75, 0.1 + 0.5 * t);
+                colorAttr.setXYZ(i, color.r, color.g, color.b);
+            } else {
+                colorAttr.setXYZ(i, 0.08, 0.45, 0.08);
+            }
+        }
+
+        colorAttr.needsUpdate = true;
+    };
+
+    const lineMap = Object.fromEntries(lineOrder.map(l => [l.name, l]));
+
+    const getLineRenderOrder = (name: string, outOfTolerance: boolean): number => {
+        if (outOfTolerance) return 10;
+        if (name.includes("Goal Line") || name.includes("Goal Area")) return 3;
+        if (name.includes("Penalty Area") || name.includes("Penalty Arc")) return 2;
+        return 1;
+    };
+
+    const addToScene = (mesh: THREE.Mesh, name: string, outOfTolerance: boolean) => {
+        const order = getLineRenderOrder(name, outOfTolerance);
+        mesh.renderOrder = order;
+        (mesh.material as THREE.MeshBasicMaterial).depthTest = false;
+        scene.add(mesh);
+    };
+
+    linesToRed.filter(line =>
+        line.name !== "Upper Touchline With Middle" &&
+        line.name !== "Lower Touchline With Middle"
+    )
+    .map((line) => {
+        const statusText = line.name.includes("Upper Touchline")
+            ? touchlineValue(line, linesToRed.find(l => l.name === "Upper Touchline With Middle"))
+            : line.name.includes("Lower Touchline")
+            ? touchlineValue(line, linesToRed.find(l => l.name === "Lower Touchline With Middle"))
+            : `${firstValue(line)}, ${secondValue(line)}`;
+
+        const isOutOfTolerance = statusText.includes("Out of tolerance");
+        const color = isOutOfTolerance ? 0xff0000 : 0xffffff;
+
+        if (line.name.includes("Point")) {
+            const point = lineMap[line.name].points[0];
+            if (!point){
+                return;
+            }
+            addToScene(createPenaltyPoint(shiftedPoints[point], getInterpolatedHeight, zMultiplier, color), line.name, isOutOfTolerance);
+        }
+        else if (line.name.includes("Circle")) {
+            const points = lineMap[line.name].points;
+            if (!points || points.length < 3) {
+                return;
+            }
+            addToScene(createCircle(shiftedPoints[points[1]], shiftedPoints[points[2]], getInterpolatedHeight, zMultiplier, color), line.name, isOutOfTolerance);
+        } 
+        else if (line.name.includes("Arc")) {
+            const points = lineMap[line.name].points;
+            if (!points || points.length < 3) {
+                return;
+            }
+            const direction = line.name.includes("Left Penalty Arc") ? true : false;
+            addToScene(createCurvedArc(
+                shiftedPoints[points[1]],
+                shiftedPoints[points[2]],
+                direction,
+                getInterpolatedHeight,
+                zMultiplier,
+                color
+            ), line.name, isOutOfTolerance);
+        }
+        else {
+            const points = lineMap[line.name].points;
+            if (!points || points.length < 2) {
+                return;
+            }
+            addToScene(createLine(
+                shiftedPoints[points[0]],
+                shiftedPoints[points[1]],
+                false,
+                getInterpolatedHeight,
+                zMultiplier,
+                color
+            ), line.name, isOutOfTolerance);
+        }
+
+    });
+    
+    const imageWidth = 1400;
+    const imageHeight = 900;
+
+    const aspect = imageWidth / imageHeight;
+    const frustumSize = Math.max(width, depth) * 0.8;
+
+    const topCamera = new THREE.OrthographicCamera(
+        (-frustumSize * aspect) / 2,
+        (frustumSize * aspect) / 2,
+        frustumSize / 2,
+        -frustumSize / 2,
+        0.1,
+        1000
+    );
+
+    const centerX = (minX + maxX) / 2;
+    const centerZ = (minY + maxY) / 2;
+    const maxSurfaceY = maxHeight * zMultiplier;
+
+    topCamera.position.set(centerX, maxSurfaceY + 200, centerZ);
+    topCamera.up.set(0, 0, -1);
+    topCamera.lookAt(centerX, 0, centerZ);
+    topCamera.updateProjectionMatrix();
+
+    const renderTarget = new THREE.WebGLRenderTarget(imageWidth, imageHeight, {
+        samples: 4
+    });
+
+    const pixels = new Uint8Array(imageWidth * imageHeight * 4);
+    const helperCanvas = document.createElement("canvas");
+    helperCanvas.width = imageWidth;
+    helperCanvas.height = imageHeight;
+    const ctx = helperCanvas.getContext("2d");
+    if (!ctx) return;
+
+    console.log("Rendering top view images...");
+
+    const saveRenderToImage = async (isHeatmap: boolean) => {
+        renderer.setRenderTarget(renderTarget);
+        renderer.render(scene, topCamera);
+        renderer.readRenderTargetPixels(
+            renderTarget,
+            0,
+            0,
+            imageWidth,
+            imageHeight,
+            pixels
+        );
+        renderer.setRenderTarget(null);
+
+        const imageData = ctx.createImageData(imageWidth, imageHeight);
+
+        for (let y = 0; y < imageHeight; y++) {
+            for (let x = 0; x < imageWidth; x++) {
+                const src = ((imageHeight - 1 - y) * imageWidth + x) * 4;
+                const dst = (y * imageWidth + x) * 4;
+
+                imageData.data[dst] = pixels[src];
+                imageData.data[dst + 1] = pixels[src + 1];
+                imageData.data[dst + 2] = pixels[src + 2];
+                imageData.data[dst + 3] = pixels[src + 3];
+            }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        const dataUrl = helperCanvas.toDataURL("image/png");
+
+        if (isHeatmap) {
+            setTopViewHeatmapImage(dataUrl);
+        } else {
+            setTopViewImage(dataUrl);
+        }
+    };
+    console.log("Saving top view images...");
+
+    const originalVisible = smoothMesh.visible;
+
+    smoothMesh.visible = true;
+    const exportLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(exportLight);
+
+    updateSurfaceColors(false);
+    await saveRenderToImage(false);
+
+    updateSurfaceColors(true);
+    await saveRenderToImage(true);
+
+    scene.remove(exportLight);
+    smoothMesh.visible = originalVisible;
+
+    renderTarget.dispose();
+    console.log("Top view images exported.");
+};

@@ -5,7 +5,9 @@ export function createLine(
     end: number[],
     needsLonger: boolean,
     getInterpolatedHeight: (x: number, z: number) => number,
-    zMultiplier: number
+    zMultiplier: number,
+    color?: number,
+    yOffset?: number
 ): THREE.Mesh {
     let [x1, z1] = start;
     let [x2, z2] = end;
@@ -16,7 +18,7 @@ export function createLine(
     }
 
     const width = 0.8;
-    const offsetY = 0.075;
+    const offsetY = yOffset ?? 0.075;
     const segmentsPerUnit = 3;
     const minSegments = 2;
     const maxSegments = 200;
@@ -52,7 +54,7 @@ export function createLine(
     geometry.computeVertexNormals();
 
     const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: color || 0xffffff,
         side: THREE.DoubleSide,
     });
 
@@ -63,14 +65,16 @@ export function createCircle(
     p1: number[],
     p2: number[],
     getInterpolatedHeight: (x: number, z: number) => number,
-    zMultiplier: number
+    zMultiplier: number,
+    color?: number,
+    yOffset?: number
 ): THREE.Mesh {
     const [x1, z1] = p1;
     const [x2, z2] = p2;
 
     const thetaSegments = 100;
     const width = 0.4;
-    const offsetY = 0.05;
+    const offsetY = yOffset ?? 0.05;
 
     const dx = x2 - x1;
     const dz = z2 - z1;
@@ -100,7 +104,7 @@ export function createCircle(
 
     const material = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        color: 0xffffff,
+        color: color || 0xffffff,
     });
 
     return new THREE.Mesh(circle, material);
@@ -111,13 +115,15 @@ export function createCurvedArc(
     p2: number[],
     direction: boolean,
     getInterpolatedHeight: (x: number, z: number) => number,
-    zMultiplier: number
+    zMultiplier: number,
+    color?: number,
+    yOffset?: number
 ): THREE.Mesh {
     const [x1, z1] = p1;
     const [x2, z2] = p2;
 
     const width = 0.8;
-    const offsetY = 0.05;
+    const offsetY = yOffset ?? 0.05;
     const arcHeight = 6;
 
     const start = new THREE.Vector3(x1, 0, z1);
@@ -149,7 +155,7 @@ export function createCurvedArc(
     geometry.computeVertexNormals();
 
     const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: color || 0xffffff,
         side: THREE.DoubleSide,
     });
 
@@ -159,14 +165,16 @@ export function createCurvedArc(
 export function createPenaltyPoint(
     position: number[],
     getInterpolatedHeight: (x: number, z: number) => number,
-    zMultiplier: number
+    zMultiplier: number,
+    color?: number,
+    yOffset?: number
 ): THREE.Mesh {
     const [x, z] = position;
 
     const thetaSegments = 30;
     const numSegments = 5;
     const radius = 1;
-    const offsetY = 0.05;
+    const offsetY = yOffset ?? 0.05;
 
     const circle = new THREE.RingGeometry(0, radius, thetaSegments, numSegments);
     circle.rotateX(-Math.PI / 2);
@@ -183,7 +191,7 @@ export function createPenaltyPoint(
     circle.computeVertexNormals();
 
     const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: color || 0xffffff,
         side: THREE.DoubleSide,
     });
 

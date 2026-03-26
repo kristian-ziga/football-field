@@ -3,9 +3,10 @@ import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
 import { useAppStorage } from "../visualization/StorageProvider";
 import {Link} from "react-router-dom";
 import InteractiveField from "../components/interactiveField";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { exportTopViewImages } from "../visualization/SceneRenderer";
 
-type LineValidation = {
+export type LineValidation = {
   name: string;
   lengthOK: boolean;
   lengthOverMargin: number;
@@ -101,40 +102,42 @@ export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValid
     return res.trim();
 }
 
+export const lineOrder = [
+    {name: "Upper Touchline", points: [5, 30, 17], isHorizontal: true}, 
+    {name: "Upper Touchline With Middle", points: [17, 5, 30], isHorizontal: true},
+    {name: "Lower Touchline", points: [0, 25, 13], isHorizontal: true}, 
+    {name: "Lower Touchline With Middle", points: [13, 0, 25], isHorizontal: true},
+
+    {name: "Halfline", points: [13, 17, 14, 15, 16], isHorizontal: false},
+    {name: "Centre Circle", points: [15, 14, 16], isHorizontal: false},
+    {name: "Centre Point", points: [15], isHorizontal: false},
+    {name: "Left Penalty Point", points: [8, 2, 3], isHorizontal: false}, 
+    {name: "Right Penalty Point", points: [22, 27, 28], isHorizontal: false},
+
+    {name: "Left Goal Line", points: [0, 5, 1, 2, 3, 4], isHorizontal: false},
+    {name: "Right Goal Line", points: [25, 30, 26, 27, 28, 29], isHorizontal: false},
+    {name: "Left Goal Area Left Line", points: [2, 3], isHorizontal: false},
+    {name: "Right Goal Area Left Line", points: [24, 23], isHorizontal: false},
+    {name: "Left Goal Area Right Line", points: [6, 7], isHorizontal: false},
+    {name: "Right Goal Area Right Line", points: [27, 28], isHorizontal: false},
+    {name: "Left Goal Area Upper Line", points: [3, 6], isHorizontal: true},
+    {name: "Right Goal Area Upper Line", points: [23, 28], isHorizontal: true},
+    {name: "Left Goal Area Lower Line", points: [2, 7], isHorizontal: true},
+    {name: "Right Goal Area Lower Line", points: [24, 27], isHorizontal: true},
+    {name: "Left Penalty Area Left Line", points: [1, 4, 2, 3], isHorizontal: false},
+    {name: "Right Penalty Area Left Line", points: [18, 21, 19, 20], isHorizontal: false},
+    {name: "Left Penalty Area Right Line", points: [9, 12, 10 , 11], isHorizontal: false},
+    {name: "Right Penalty Area Right Line", points: [26, 29, 27, 28], isHorizontal: false},
+    {name: "Left Penalty Area Upper Line", points: [4, 9], isHorizontal: true},
+    {name: "Right Penalty Area Upper Line", points: [18, 29], isHorizontal: true},
+    {name: "Left Penalty Area Lower Line", points: [1, 12], isHorizontal: true},
+    {name: "Right Penalty Area Lower Line", points: [21, 26], isHorizontal: true},
+    {name: "Left Penalty Arc", points: [8, 10, 11], isHorizontal: false},
+    {name: "Right Penalty Arc", points: [22, 19, 20], isHorizontal: false},
+]
+
 export function getValidations(mainPoints: number[][]): LineValidation[] {
-    const linesToValidate = [
-        {name: "Upper Touchline", points: [5, 30, 17], isHorizontal: true}, 
-        {name: "Upper Touchline With Middle", points: [17, 5, 30], isHorizontal: true},
-        {name: "Lower Touchline", points: [0, 25, 13], isHorizontal: true}, 
-        {name: "Lower Touchline With Middle", points: [13, 0, 25], isHorizontal: true},
-
-        {name: "Halfline", points: [13, 17, 14, 15, 16], isHorizontal: false},
-        {name: "Centre Circle", points: [15, 14, 16], isHorizontal: false},
-        {name: "Centre Point", points: [15], isHorizontal: false},
-        {name: "Left Penalty Point", points: [8, 2, 3], isHorizontal: false}, 
-        {name: "Right Penalty Point", points: [22, 27, 28], isHorizontal: false},
-
-        {name: "Left Goal Line", points: [0, 5, 1, 2, 3, 4], isHorizontal: false},
-        {name: "Right Goal Line", points: [25, 30, 26, 27, 28, 29], isHorizontal: false},
-        {name: "Left Goal Area Left Line", points: [2, 3], isHorizontal: false},
-        {name: "Right Goal Area Left Line", points: [24, 23], isHorizontal: false},
-        {name: "Left Goal Area Right Line", points: [6, 7], isHorizontal: false},
-        {name: "Right Goal Area Right Line", points: [27, 28], isHorizontal: false},
-        {name: "Left Goal Area Upper Line", points: [3, 6], isHorizontal: true},
-        {name: "Right Goal Area Upper Line", points: [23, 28], isHorizontal: true},
-        {name: "Left Goal Area Lower Line", points: [2, 7], isHorizontal: true},
-        {name: "Right Goal Area Lower Line", points: [24, 27], isHorizontal: true},
-        {name: "Left Penalty Area Left Line", points: [1, 4, 2, 3], isHorizontal: false},
-        {name: "Right Penalty Area Left Line", points: [18, 21, 19, 20], isHorizontal: false},
-        {name: "Left Penalty Area Right Line", points: [9, 12, 10 , 11], isHorizontal: false},
-        {name: "Right Penalty Area Right Line", points: [26, 29, 27, 28], isHorizontal: false},
-        {name: "Left Penalty Area Upper Line", points: [4, 9], isHorizontal: true},
-        {name: "Right Penalty Area Upper Line", points: [18, 29], isHorizontal: true},
-        {name: "Left Penalty Area Lower Line", points: [1, 12], isHorizontal: true},
-        {name: "Right Penalty Area Lower Line", points: [21, 26], isHorizontal: true},
-        {name: "Left Penalty Arc", points: [8, 10, 11], isHorizontal: false},
-        {name: "Right Penalty Arc", points: [22, 19, 20], isHorizontal: false},
-    ];
+    const linesToValidate = lineOrder;
 
     function lineLength(x1: number, y1: number, x2: number, y2: number): number {
         const dx = x1 - x2;
@@ -400,11 +403,19 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
 
 
 export default function MeasurementValidation() {
-    const { getMainPoints } = useAppStorage();
+    const { getMainPoints, sceneData, setTopViewImage, setTopViewHeatmapImage } = useAppStorage();
     const navigate = useNavigate();
     const mainPoints = getMainPoints();
     const lineValidations = getValidations(mainPoints);
     //console.log(mainPoints)
+
+    // call function
+    useEffect(() => {
+        console.log("Scene data ref in measurement validation:", sceneData);
+        if (!sceneData) return;
+        console.log("Scene data ref is available, exporting images...");
+        exportTopViewImages(lineValidations, sceneData, setTopViewImage, setTopViewHeatmapImage);
+    }, [sceneData]);
 
     const [enabledLines, setEnabledLines] = useState<Record<string, boolean>>({});
 
@@ -482,10 +493,6 @@ export default function MeasurementValidation() {
             </Dialog>
         );
     }
-
-    
-
-    
 
     const visibleLines = lineValidations ? lineValidations.filter(line => 
         line.name !== "Upper Touchline With Middle" &&
@@ -629,6 +636,11 @@ export default function MeasurementValidation() {
                     VALIDATE
                 </Button>
             </div>
+            <canvas //hiden for canvas ref
+                width={800}
+                height={600}
+                style={{ display: "none" }} 
+            />
         </div>
     )
 }
