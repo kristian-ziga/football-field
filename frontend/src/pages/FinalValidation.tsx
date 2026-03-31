@@ -158,9 +158,9 @@ export default function FinalValidation() {
 
         drawSectionTitle("Validation Summary");
 
-        const fifaIdealValid = !haveValidationIssues() && isFifaIdeal();
-        const fifaStandardValid = !haveValidationIssues() && isFifaStandardized();
-        const ifabStandardValid = !haveValidationIssues() && isIfabStandardized();
+        const fifaIdealValid = isFifaIdeal();
+        const fifaStandardValid = isFifaStandardized();
+        const ifabStandardValid = isIfabStandardized();
 
         drawLabelValue(
             "FIFA Ideal (105x68)",
@@ -276,31 +276,34 @@ export default function FinalValidation() {
         const lengthOfField = getLengthOfField();
         const widthOfField = getWidthOfField();
 
-        if (lengthOfField > 110 || lengthOfField < 100 || widthOfField > 75 || widthOfField < 64)
+        if (lengthOfField >= 111 || lengthOfField < 100 || widthOfField >= 76 || widthOfField < 64)
             return false;
         return true;
     }
 
     function isFifaIdeal(): boolean {
-        const lengthOfField = getLengthOfField();
-        const widthOfField = getWidthOfField();
-        // +0.3 / -0.3 for not ideal measurements
-        return (lengthOfField <= 105 + 0.3 && lengthOfField >= 105 - 0.3 && widthOfField <= 68 + 0.3 && widthOfField >= 68 - 0.3);
+        const length = getLengthOfField();
+        const width = getWidthOfField();
+
+        return (
+            length >= 105 && length < 106 &&
+            width >= 68 && width < 69
+        );
     }
 
     function isIfabStandardized(): boolean {
         const lengthOfField = getLengthOfField();
         const widthOfField = getWidthOfField();
 
-        if (lengthOfField > 120 || lengthOfField < 90 || widthOfField > 90 || widthOfField < 45)
+        if (lengthOfField >= 121 || lengthOfField < 90 || widthOfField >= 91 || widthOfField < 45)
             return false;
         return true;
     }
 
     const validations = [
-        { label: "FIFA Ideal (105x68)", invalid: haveValidationIssues() || !isFifaIdeal() },
-        { label: "FIFA Standard (100~110x64~75)", invalid: haveValidationIssues() || !isFifaStandardized() },
-        { label: "International Standard (90~120x45~90)", invalid: haveValidationIssues() || !isIfabStandardized() }
+        { label: "FIFA Ideal (105x68)", invalid: !isFifaIdeal() },
+        { label: "FIFA Standard (100~110x64~75)", invalid: !isFifaStandardized() },
+        { label: "International Standard (90~120x45~90)", invalid: !isIfabStandardized() }
     ];
 
     const statusColor = (isInvalid: boolean) => isInvalid ? "#fca5a5" : "#86efac";
