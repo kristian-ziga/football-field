@@ -208,10 +208,9 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
 
             return new THREE.Mesh(
                 geometry,
-                new THREE.MeshPhongMaterial({
+                new THREE.MeshStandardMaterial({
                     vertexColors: true,
                     side: THREE.DoubleSide,
-                    shininess: 20
                 })
             );
         }
