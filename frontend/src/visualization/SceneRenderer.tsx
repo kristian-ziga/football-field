@@ -102,7 +102,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
 
         function createPlaneMesh(planeData: { normal: THREE.Vector3; centroid: number[] }, color: number) {
             const geometry = new THREE.PlaneGeometry(120, 80, 40, 40);
-            const material = new THREE.MeshStandardMaterial({
+            const material = new THREE.MeshStandardMaterial({ 
                 color,
                 side: THREE.DoubleSide,
                 transparent: true,
@@ -505,7 +505,6 @@ export const exportTopViewImages = async (
     const ctx = helperCanvas.getContext("2d");
     if (!ctx) return;
 
-    console.log("Rendering top view images...");
 
     const saveRenderToImage = async (isHeatmap: boolean) => {
         renderer.setRenderTarget(renderTarget);
@@ -544,7 +543,6 @@ export const exportTopViewImages = async (
             setTopViewImage(dataUrl);
         }
     };
-    console.log("Saving top view images...");
 
     const originalVisible = smoothMesh.visible;
 
@@ -562,5 +560,4 @@ export const exportTopViewImages = async (
     smoothMesh.visible = originalVisible;
 
     renderTarget.dispose();
-    console.log("Top view images exported.");
 };

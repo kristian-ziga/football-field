@@ -14,7 +14,7 @@ export function txtParser(text: string): number[][] {
 
         const parts = trimmed.split(/\s+/);
 
-        if (parts.length < 4) {
+        if (parts.length != 4) {
             throw new Error(`Line ${index + 1} skipped: not enough columns`);
         }
 
