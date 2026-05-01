@@ -62,47 +62,47 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
         >
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem" }}>
-                    <span style={{ flexShrink: 0 }}>Z Multiplier: {zMultiplier}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem", justifyContent: 'space-between' }}>
+                    <span style={{ flexShrink: 0 }}>Elevation Scale: {zMultiplier}</span>
                     <Slider
                         value={zMultiplier}
                         min={1}
                         max={30}
                         onChange={(_, value) => setZMultiplier(value)}
-                        style={{ flexGrow: 1 }}
+                        style={{ width: '6rem' }}
                     />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem" }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem", justifyContent: 'space-between' }}>
                     <span style={{ flexShrink: 0 }}>Min Radius: {minRadius}</span>
                     <Slider
                         value={minRadius}
                         min={1}
                         max={minRadiusMax}
                         onChange={(_, value) => setMinRadius(value)}
-                        style={{ flexGrow: 1 }}
+                        style={{ width: '6rem' }}
                     />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem" }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem", justifyContent: 'space-between' }}>
                     <span style={{ flexShrink: 0 }}>Max Radius: {maxRadius}</span>
                     <Slider
                         value={maxRadius}
                         min={9}
                         max={40}
                         onChange={(_, value) => setMaxRadius(value)}
-                        style={{ flexGrow: 1 }}
+                        style={{ width: '6rem' }}
                     />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem" }}>
-                    <span style={{ flexShrink: 0 }}>X-axis weight: {xFactor}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem", justifyContent: 'space-between' }}>
+                    <span style={{ flexShrink: 0 }}>Long-axis Range: {xFactor}</span>
                     <Slider
                         value={xFactor}
                         min={1}
                         max={10}
                         onChange={(_, value) => setXFactor(value)}
-                        style={{ flexGrow: 1 }}
+                        style={{ width: '6rem' }}
                     />
                 </div>
             </div>
