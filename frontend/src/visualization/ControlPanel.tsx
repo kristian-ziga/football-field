@@ -63,7 +63,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', width: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem" }}>
-                    <span style={{ flexShrink: 0 }}>Z Multiplier: {zMultiplier}</span>
+                    <span style={{ flexShrink: 0 }}>Elev. Scale: {zMultiplier}</span>
                     <Slider
                         value={zMultiplier}
                         min={1}
@@ -96,7 +96,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginRight:"0.15rem" }}>
-                    <span style={{ flexShrink: 0 }}>X-axis weight: {xFactor}</span>
+                    <span style={{ flexShrink: 0 }}>Longer-axis Influence: {xFactor}</span>
                     <Slider
                         value={xFactor}
                         min={1}
