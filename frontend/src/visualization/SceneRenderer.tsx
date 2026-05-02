@@ -494,49 +494,12 @@ export const exportTopViewImages = async (
     topCamera.lookAt(centerX, 0, centerZ);
     topCamera.updateProjectionMatrix();
 
-    const renderTarget = new THREE.WebGLRenderTarget(imageWidth, imageHeight, {
-        samples: 4
-    });
+    const exportRenderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    exportRenderer.setSize(imageWidth, imageHeight);
 
-    const pixels = new Uint8Array(imageWidth * imageHeight * 4);
-    const helperCanvas = document.createElement("canvas");
-    helperCanvas.width = imageWidth;
-    helperCanvas.height = imageHeight;
-    const ctx = helperCanvas.getContext("2d");
-    if (!ctx) return;
-
-
-    const saveRenderToImage = async (isHeatmap: boolean) => {
-        renderer.setRenderTarget(renderTarget);
-        renderer.render(scene, topCamera);
-        renderer.readRenderTargetPixels(
-            renderTarget,
-            0,
-            0,
-            imageWidth,
-            imageHeight,
-            pixels
-        );
-        renderer.setRenderTarget(null);
-
-        const imageData = ctx.createImageData(imageWidth, imageHeight);
-
-        for (let y = 0; y < imageHeight; y++) {
-            for (let x = 0; x < imageWidth; x++) {
-                const src = ((imageHeight - 1 - y) * imageWidth + x) * 4;
-                const dst = (y * imageWidth + x) * 4;
-
-                imageData.data[dst] = pixels[src];
-                imageData.data[dst + 1] = pixels[src + 1];
-                imageData.data[dst + 2] = pixels[src + 2];
-                imageData.data[dst + 3] = pixels[src + 3];
-            }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-
-        const dataUrl = helperCanvas.toDataURL("image/png");
-
+    const saveRenderToImage = (isHeatmap: boolean) => {
+        exportRenderer.render(scene, topCamera);
+        const dataUrl = exportRenderer.domElement.toDataURL("image/png");
         if (isHeatmap) {
             setTopViewHeatmapImage(dataUrl);
         } else {
@@ -549,17 +512,16 @@ export const exportTopViewImages = async (
     scene.add(smoothMesh);
 
     smoothMesh.visible = true;
-    const exportLight = new THREE.AmbientLight(0xffffff, 0.55);
+    const exportLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(exportLight);
 
     updateSurfaceColors(false);
-    await saveRenderToImage(false);
+    saveRenderToImage(false);
 
     updateSurfaceColors(true);
-    await saveRenderToImage(true);
+    saveRenderToImage(true);
 
     scene.remove(exportLight);
     smoothMesh.visible = originalVisible;
-
-    renderTarget.dispose();
+    exportRenderer.dispose();
 };
