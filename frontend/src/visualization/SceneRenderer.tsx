@@ -474,7 +474,7 @@ export const exportTopViewImages = async (
     const imageHeight = 900;
 
     const aspect = imageWidth / imageHeight;
-    const frustumSize = Math.max(width, depth) * 0.8;
+    const frustumSize = Math.max(width / aspect, depth) * 1.1;
 
     const topCamera = new THREE.OrthographicCamera(
         (-frustumSize * aspect) / 2,
