@@ -9,8 +9,8 @@ export function createLine(
     color?: number,
     yOffset?: number
 ): THREE.Mesh {
-    let [x1, z1] = start;
-    let [x2, z2] = end;
+    let [x1, y1] = start;
+    let [x2, y2] = end;
 
     if (needsLonger) {
         x1 += 0.4;
@@ -25,8 +25,8 @@ export function createLine(
     const widthSegments = 3;
 
     const dx = x2 - x1;
-    const dz = z2 - z1;
-    const length = Math.hypot(dx, dz);
+    const dy = y2 - y1;
+    const length = Math.hypot(dx, dy);
 
     const lengthSegments = Math.min(
         maxSegments,
@@ -37,11 +37,11 @@ export function createLine(
     geometry.rotateX(-Math.PI / 2);
 
     // important minus
-    const angle = -Math.atan2(dz, dx);
+    const angle = -Math.atan2(dy, dx);
     geometry.rotateY(angle);
 
     const centerX = (x1 + x2) / 2;
-    const centerZ = (z1 + z2) / 2;
+    const centerZ = (y1 + y2) / 2;
     geometry.translate(centerX, 0, centerZ);
 
     const pos = geometry.attributes.position;
@@ -55,7 +55,7 @@ export function createLine(
 
     const material = new THREE.MeshBasicMaterial({
         color: color || 0xffffff,
-        side: THREE.DoubleSide,
+        side: THREE.DoubleSide
     });
 
     return new THREE.Mesh(geometry, material);
@@ -69,16 +69,16 @@ export function createCircle(
     color?: number,
     yOffset?: number
 ): THREE.Mesh {
-    const [x1, z1] = p1;
-    const [x2, z2] = p2;
+    const [x1, y1] = p1;
+    const [x2, y2] = p2;
 
     const thetaSegments = 100;
     const width = 0.4;
-    const offsetY = yOffset ?? 0.05;
+    const offsetY = yOffset ?? 0.075;
 
     const dx = x2 - x1;
-    const dz = z2 - z1;
-    const length = Math.hypot(dx, dz);
+    const dy = y2 - y1;
+    const length = Math.hypot(dx, dy);
 
     const circle = new THREE.RingGeometry(
         length / 2 - width,
@@ -89,7 +89,7 @@ export function createCircle(
     circle.rotateX(-Math.PI / 2);
 
     const centerX = (x1 + x2) / 2;
-    const centerZ = (z1 + z2) / 2;
+    const centerZ = (y1 + y2) / 2;
     circle.translate(centerX, 0, centerZ);
 
     const pos = circle.attributes.position;
@@ -119,27 +119,27 @@ export function createCurvedArc(
     color?: number,
     yOffset?: number
 ): THREE.Mesh {
-    const [x1, z1] = p1;
-    const [x2, z2] = p2;
+    const [x1, y1] = p1;
+    const [x2, y2] = p2;
 
     const width = 0.8;
-    const offsetY = yOffset ?? 0.05;
+    const offsetY = yOffset ?? 0.075;
     const arcHeight = 6;
 
-    const start = new THREE.Vector3(x1, 0, z1);
-    const end = new THREE.Vector3(x2, 0, z2);
+    const start = new THREE.Vector3(x1, 0, y1);
+    const end = new THREE.Vector3(x2, 0, y2);
 
     const midX = (x1 + x2) / 2;
-    const midZ = (z1 + z2) / 2;
+    const midY = (y1 + y2) / 2;
 
     const dx = x2 - x1;
-    const dz = z2 - z1;
+    const dy = y2 - y1;
     const offset = direction ? -arcHeight : arcHeight;
 
     const control = new THREE.Vector3(
-        midX - (dz / Math.hypot(dx, dz)) * offset,
+        midX - (dy / Math.hypot(dx, dy)) * offset,
         0,
-        midZ + (dx / Math.hypot(dx, dz)) * offset
+        midY + (dx / Math.hypot(dx, dy)) * offset
     );
 
     const curve = new THREE.QuadraticBezierCurve3(start, control, end);
@@ -174,7 +174,7 @@ export function createPenaltyPoint(
     const thetaSegments = 30;
     const numSegments = 5;
     const radius = 1;
-    const offsetY = yOffset ?? 0.05;
+    const offsetY = yOffset ?? 0.075;
 
     const circle = new THREE.RingGeometry(0, radius, thetaSegments, numSegments);
     circle.rotateX(-Math.PI / 2);

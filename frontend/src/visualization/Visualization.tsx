@@ -69,7 +69,7 @@ export default function Visualization() {
             </Dialog>
         );
     }
-     const xs = allPoints.map(p => p[0]);
+    const xs = allPoints.map(p => p[0]);
     const ys = allPoints.map(p => p[1]);
     const marginX = 2;
     const marginY = 3;
