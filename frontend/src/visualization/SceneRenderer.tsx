@@ -348,7 +348,6 @@ export const exportTopViewImages = async (
     setTopViewImage: (image: string | null) => void,
     setTopViewHeatmapImage: (image: string | null) => void
 ) => {
-    console.log("Exporting top view images...");
     const data = dataRef.current;
     if (!data) return;
 
@@ -458,10 +457,11 @@ export const exportTopViewImages = async (
             if (!points || points.length < 2) {
                 return;
             }
+            const horizontal = line.name.includes("Upper") || line.name.includes("Lower");
             addToScene(createLine(
                 shiftedPoints[points[0]],
                 shiftedPoints[points[1]],
-                false,
+                horizontal,
                 getInterpolatedHeight,
                 zMultiplier,
                 color
@@ -545,6 +545,8 @@ export const exportTopViewImages = async (
     };
 
     const originalVisible = smoothMesh.visible;
+
+    scene.add(smoothMesh);
 
     smoothMesh.visible = true;
     const exportLight = new THREE.AmbientLight(0xffffff, 0.7);
