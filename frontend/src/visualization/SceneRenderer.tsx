@@ -549,7 +549,7 @@ export const exportTopViewImages = async (
     scene.add(smoothMesh);
 
     smoothMesh.visible = true;
-    const exportLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const exportLight = new THREE.AmbientLight(0xffffff, 0.55);
     scene.add(exportLight);
 
     updateSurfaceColors(false);
