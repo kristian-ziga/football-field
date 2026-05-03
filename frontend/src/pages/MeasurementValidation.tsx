@@ -283,8 +283,6 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const xDiff = diffInLengths(mainPoints[line.points[0]][0], middle[0]);
             const yDiff = diffInLengths(mainPoints[line.points[0]][1], middle[1]);
 
-            console.log(line.name, diameter, diameterOver, xDiff, yDiff);
-
             const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000;
 
             resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diameterOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterOver, newLengthTolerance),
@@ -324,7 +322,6 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             if (line.name.includes("Touchline")) {
                 length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[1]]]);
                 // needs special handling lengthOverMargin is actually real length, because of different ranges
-
 
                 resultOfLineValidation.push({name: line.name, lengthOK: 110 + lengthTolerance/2 >= (length + 0.12) && (length + 0.12) >= 100 - lengthTolerance/2, 
                     lengthOverMargin: length + 0.12, 
