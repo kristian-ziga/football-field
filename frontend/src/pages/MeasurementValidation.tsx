@@ -12,6 +12,7 @@ export type LineValidation = {
   lengthOverMargin: number;
   angleOK: boolean;
   angleOverMargin: number;
+  angleOverMargin2?: number;
   enabled: boolean;
 };
 
@@ -62,9 +63,13 @@ export function secondValue(line: LineValidation): string {
     }
 
     if (line.name.includes("Centre Circle")) {
-        if (line.angleOK)
-            return "Centre of Circle: Valid"
-        return `Centre of Circle: Invalid, Out of tolerance by ${(line.angleOverMargin * 100).toFixed(1)} cm` 
+        const xOK = line.angleOverMargin >= 0;
+        const yOK = line.angleOverMargin2 === undefined || line.angleOverMargin2 >= 0;
+        if (line.angleOK) return "Centre of Circle: Valid";
+        let res = "";
+        if (!xOK) res += `Horizontal deviation: Invalid, Out of tolerance by ${(line.angleOverMargin * 100).toFixed(1)} cm`;
+        if (!yOK) res += (res ? ", " : "") + `Vertical deviation: Invalid, Out of tolerance by ${((line.angleOverMargin2 ?? 0) * 100).toFixed(1)} cm`;
+        return res || "Centre of Circle: Invalid";
     }
 
     if (line.name.includes("Penalty Arc")) {
@@ -274,15 +279,17 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const diameter = lengthOfPoints([mainPoints[line.points[1]], mainPoints[line.points[0]], mainPoints[line.points[2]]]);
             const diameterOver = diffInLengths(diameter + 0.12, 18.30)
 
-            // how much off is middle point from middle of circle defined by two outer points
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
-            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
-            const diffLength = diffInLengths(length, 0)
-            
-            const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them
-   
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diameterOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterOver, newLengthTolerance), 
-                angleOK: isLengthWithinMargin(diffLength, lengthTolerance), angleOverMargin: lengthOverMargin(diffLength, lengthTolerance), enabled: true});
+            const xDiff = diffInLengths(mainPoints[line.points[0]][0], middle[0]);
+            const yDiff = diffInLengths(mainPoints[line.points[0]][1], middle[1]);
+
+            console.log(line.name, diameter, diameterOver, xDiff, yDiff);
+
+            const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000;
+
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diameterOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterOver, newLengthTolerance),
+                angleOK: isLengthWithinMargin(xDiff, lengthTolerance / 3) && isLengthWithinMargin(yDiff, lengthTolerance / 3),
+                angleOverMargin: lengthOverMargin(xDiff, lengthTolerance / 3), angleOverMargin2: lengthOverMargin(yDiff, lengthTolerance / 3), enabled: true});
             continue;
         }
 
