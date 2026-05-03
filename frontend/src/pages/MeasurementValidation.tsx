@@ -92,11 +92,11 @@ export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValid
     if (lineWidthMiddle) {
         res += lineWidthMiddle.lengthOK 
             ? "Vertical position of Middle: Valid" 
-            : `Vertical position of Middle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)} cm`;
+            : `Vertical position of Middle: Invalid, Out of tolerance by ${(lineWidthMiddle.lengthOverMargin * 100).toFixed(1)} cm`;
 
-        res += lineWidthMiddle.angleOK 
-            ? ", Horizontal position of Middle: Valid" 
-            : `, Horizontal position of Middle: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)} cm`;
+        res += lineWidthMiddle.angleOK
+            ? ", Horizontal position of Middle: Valid"
+            : `, Horizontal position of Middle: Invalid, Out of tolerance by ${(lineWidthMiddle.angleOverMargin * 100).toFixed(1)} cm`;
     }
 
     return res.trim();
@@ -159,7 +159,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         for (let i = 0; i < points.length - 1; i++) {
             totalLength += lineLengthWithHeight(points[i][0], points[i][1], points[i][2], points[i + 1][0], points[i + 1][1], points[i + 1][2]);
         }
-        return totalLength;
+        return Math.round(totalLength * 1000) / 1000;
     }
 
     const angleTolerance = 1;
@@ -169,11 +169,11 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
 
     function diffInLengths(length: number, desiredLength: number): number {
         const res = Math.abs(desiredLength) - Math.abs(length);
-        return Math.trunc(res * 1000) / 1000;
+        return Math.round(res * 1000) / 1000;
     }
 
     function isLengthWithinMargin(diffLength: number, tolerance: number): boolean {
-        return Math.abs((diffLength * 100) / 100) <= tolerance / 2;
+        return Math.round(Math.abs(diffLength) * 1000) / 1000 <= Math.round(tolerance / 2 * 1000) / 1000;
     }
 
     function lengthOverMargin(diffLength: number, tolerance: number): number {
@@ -194,7 +194,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             angle = Math.atan2(Math.abs(dx), Math.abs(dy));
         }
 
-        return ((angle * (180 / Math.PI)) * 100) / 100;
+        return ((angle * (180 / Math.PI)) * 1000) / 1000;
     }
 
     function angleOverMargin(angle: number, tolerance: number): number {
@@ -204,7 +204,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     }
 
     function isAngleWithinMargin(angle: number, tolerance: number): boolean {
-        return Math.abs((angle * 100) / 100) <= tolerance;
+        return Math.abs((angle * 1000) / 1000) <= tolerance;
     }
 
     const resultOfLineValidation: LineValidation[] = [];
@@ -272,15 +272,16 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
 
         if (line.name.includes("Centre Circle")) {
             const diameter = lengthOfPoints([mainPoints[line.points[1]], mainPoints[line.points[0]], mainPoints[line.points[2]]]);
-            const diameterhOver = diffInLengths(diameter + 0.12, 18.30)
+            const diameterOver = diffInLengths(diameter + 0.12, 18.30)
 
             // how much off is middle point from middle of circle defined by two outer points
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
             const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
             const diffLength = diffInLengths(length, 0)
             
-            const newLengthTolerance = lengthTolerance + 0.02; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them
-            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diameterhOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterhOver, newLengthTolerance), 
+            const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them
+   
+            resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diameterOver, newLengthTolerance), lengthOverMargin: lengthOverMargin(diameterOver, newLengthTolerance), 
                 angleOK: isLengthWithinMargin(diffLength, lengthTolerance), angleOverMargin: lengthOverMargin(diffLength, lengthTolerance), enabled: true});
             continue;
         }
@@ -392,7 +393,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             } 
         
             const diffLength = diffInLengths(length + 0.12, desiredLength)
-            const newLengthTolerance = lengthTolerance + 0.02; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them, this is not ideal but works for now
+            const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them, this is not ideal but works for now
             resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diffLength, newLengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, newLengthTolerance), 
                 angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
             continue;
@@ -411,9 +412,7 @@ export default function MeasurementValidation() {
 
     // call function
     useEffect(() => {
-        console.log("Scene data ref in measurement validation:", sceneData);
         if (!sceneData) return;
-        console.log("Scene data ref is available, exporting images...");
         exportTopViewImages(lineValidations, sceneData, setTopViewImage, setTopViewHeatmapImage);
     }, [sceneData]);
 
