@@ -144,14 +144,7 @@ export const lineOrder = [
 export function getValidations(mainPoints: number[][]): LineValidation[] {
     const linesToValidate = lineOrder;
 
-    function lineLength(x1: number, y1: number, x2: number, y2: number): number {
-        const dx = x1 - x2;
-        const dy = y1 - y2;
-
-        return Math.sqrt(dx ** 2 + dy ** 2);
-    }
-
-    function lineLengthWithHeight(x1: number, y1: number, z1: number, x2: number, y2: number, z2: number): number {
+    function lineLength(x1: number, y1: number, z1: number, x2: number, y2: number, z2: number): number {
         const dx = x1 - x2;
         const dy = y1 - y2;
         const dz = z1 - z2;
@@ -162,7 +155,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     function lengthOfPoints(points: number[][]): number {
         let totalLength = 0;
         for (let i = 0; i < points.length - 1; i++) {
-            totalLength += lineLengthWithHeight(points[i][0], points[i][1], points[i][2], points[i + 1][0], points[i + 1][1], points[i + 1][2]);
+            totalLength += lineLength(points[i][0], points[i][1], points[i][2], points[i + 1][0], points[i + 1][1], points[i + 1][2]);
         }
         return Math.round(totalLength * 1000) / 1000;
     }
@@ -257,8 +250,12 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         const line = linesToValidate[i];
 
         if (line.name.includes("Penalty Point")) {
-            const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
-            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1]);
+            const middle = [
+                (mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2,
+                (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2,
+                (mainPoints[line.points[1]][2] + mainPoints[line.points[2]][2]) / 2,
+            ];
+            const length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[0]][2], middle[0], middle[1], middle[2]);
             // 0.06 width of line
             const diffLength = diffInLengths(length + 0.06, 11)
             const angle = angleOfLine(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], middle[0], middle[1], true);
@@ -292,8 +289,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         }
 
         if (line.name.includes("Penalty Arc")) {
-            const lengthUpperPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
-            const lengthLowerPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[2]][0], mainPoints[line.points[2]][1])
+            const lengthUpperPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[0]][2], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], mainPoints[line.points[1]][2])
+            const lengthLowerPoint = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[0]][2], mainPoints[line.points[2]][0], mainPoints[line.points[2]][1], mainPoints[line.points[2]][2])
             const lengthOverUpper = diffInLengths(lengthUpperPoint + 0.06, 9.15)
             const lengthOverLower = diffInLengths(lengthLowerPoint + 0.06, 9.15)
 
@@ -315,7 +312,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         }
 
         if (line.isHorizontal) {
-            let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
+            let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[0]][2], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], mainPoints[line.points[1]][2]);
             const angle = angleOfLine(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], true);
             let desiredLength = 0;
             
@@ -338,7 +335,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                 angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
             continue;
         } else {
-            let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1]);
+            let length = lineLength(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[0]][2], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], mainPoints[line.points[1]][2]);
             const angle = angleOfLine(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], false);
             let desiredLength = 0;
 
