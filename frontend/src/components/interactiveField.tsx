@@ -73,7 +73,7 @@ export default function InteractiveField({ lineValidations }: InteractiveFootbal
         ctx.fillRect(xMove + width - lineWidth, yMove, lineWidth, height)
 
         //half line
-        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Halfline"));
+        ctx.fillStyle = lineColor(lineValidations.find(line => line.name === "Halfway Line"));
         ctx.fillRect(xMove + width/2 - lineWidth/2, yMove, lineWidth, height);
 
         //left penalty area

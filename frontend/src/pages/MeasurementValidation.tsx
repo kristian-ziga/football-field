@@ -43,7 +43,7 @@ export function firstValue(line: LineValidation): string {
 
     if (line.lengthOK)
         return "Length: Valid"
-    else if (line.name.includes("Halfline") || line.name.includes("Left Goal Line") || line.name.includes("Right Goal Line")) {
+    else if (line.name.includes("Halfway Line") || line.name.includes("Left Goal Line") || line.name.includes("Right Goal Line")) {
         return `Length: Invalid, Out of tolerance. Length: ${line.lengthOverMargin.toFixed(3)} m`
     }
     return `Length: Invalid, Out of tolerance by ${(line.lengthOverMargin * 100).toFixed(1)} cm`
@@ -113,7 +113,7 @@ export const lineOrder = [
     {name: "Lower Touchline", points: [0, 25, 13], isHorizontal: true}, 
     {name: "Lower Touchline With Middle", points: [13, 0, 25], isHorizontal: true},
 
-    {name: "Halfline", points: [13, 17, 14, 15, 16], isHorizontal: false},
+    {name: "Halfway Line", points: [13, 17, 14, 15, 16], isHorizontal: false},
     {name: "Centre Circle", points: [15, 14, 16], isHorizontal: false},
     {name: "Centre Point", points: [15], isHorizontal: false},
     {name: "Left Penalty Point", points: [8, 2, 3], isHorizontal: false}, 
@@ -339,8 +339,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             const angle = angleOfLine(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1], false);
             let desiredLength = 0;
 
-            if (line.name == "Halfline" || line.name == "Left Goal Line" || line.name == "Right Goal Line") {
-                if (line.name == "Halfline") {
+            if (line.name == "Halfway Line" || line.name == "Left Goal Line" || line.name == "Right Goal Line") {
+                if (line.name == "Halfway Line") {
                     length = lengthOfPoints([mainPoints[line.points[0]], mainPoints[line.points[2]], mainPoints[line.points[3]], mainPoints[line.points[4]], mainPoints[line.points[1]]]);
                 } else if (line.name == "Left Goal Line") {
                     const x = (mainPoints[line.points[0]][0] + mainPoints[line.points[1]][0]) / 2;

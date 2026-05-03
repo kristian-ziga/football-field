@@ -266,7 +266,7 @@ export default function FinalValidation() {
     function getWidthOfField(): number {
         const leftGoalLine = lineValidations.find(line => line.name == "Left Goal Line")?.lengthOverMargin ?? -1;
         const rightGoalLine = lineValidations.find(line => line.name == "Right Goal Line")?.lengthOverMargin ?? -1;
-        const halfLine = lineValidations.find(line => line.name == "Halfline")?.lengthOverMargin ?? -1;
+        const halfLine = lineValidations.find(line => line.name == "Halfway Line")?.lengthOverMargin ?? -1;
 
         const num =  Math.max(leftGoalLine, rightGoalLine, halfLine);
         return Math.round(num * 100) / 100;
