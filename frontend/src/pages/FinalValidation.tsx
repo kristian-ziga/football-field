@@ -260,7 +260,7 @@ export default function FinalValidation() {
         const lowerLength = lineValidations.find(line => line.name == "Lower Touchline")?.lengthOverMargin ?? -1;
 
         const num = Math.max(upperLength, lowerLength);
-        return Math.round(num * 100) / 100;
+        return Math.trunc(num * 100) / 100;
     }
 
     function getWidthOfField(): number {
@@ -269,7 +269,7 @@ export default function FinalValidation() {
         const halfLine = lineValidations.find(line => line.name == "Halfway Line")?.lengthOverMargin ?? -1;
 
         const num =  Math.max(leftGoalLine, rightGoalLine, halfLine);
-        return Math.round(num * 100) / 100;
+        return Math.trunc(num * 100) / 100;
     }
 
     function isFifaStandardized(): boolean {
