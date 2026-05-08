@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { PCA } from "ml-pca";
 
 interface StoredFile {
     name: string;
@@ -118,14 +119,14 @@ export const AppStorageProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const getAllPoints = () => {
         if (mainPoints && mainPoints.length >= 31) {
-            return transformPoints([...mainPoints, ...(secondaryPoints ?? [])])
+            return transformPoints([...identifyPoints(mainPoints), ...(secondaryPoints ?? [])])
         }
         return [];
     };
 
     const getMainPoints = () => {
         if (mainPoints && mainPoints.length >= 31) {
-            return transformPoints(mainPoints)
+            return transformPoints(identifyPoints(mainPoints))
         }
         return [];
     }
@@ -145,6 +146,119 @@ export const useAppStorage = () => {
     return ctx;
 };
 
+
+export function identifyPoints(rawPoints: number[][]): number[][] {
+    const n = 31;
+    const pts = rawPoints.slice(0, n);
+
+    // 2D PCA on x, y to find the long axis of the pitch
+    const pca = new PCA(pts.map(([x, y]) => [x, y]));
+    const eigenvalues = pca.getEigenvalues();
+    const eigenvectors = pca.getEigenvectors();
+    const largestIdx = eigenvalues.indexOf(Math.max(...eigenvalues));
+    const pc1x = eigenvectors.get(0, largestIdx);
+    const pc1y = eigenvectors.get(1, largestIdx);
+
+    // Rotate so long axis aligns with x-axis
+    const rotAngle = -Math.atan2(pc1y, pc1x);
+    const cx = pts.reduce((s, p) => s + p[0], 0) / n;
+    const cy = pts.reduce((s, p) => s + p[1], 0) / n;
+
+    // Temporarily rotate and centre all points for identification only
+    const rotated = pts.map(([x, y, z]) => {
+        const dx = x - cx, dy = y - cy;
+        return [
+            dx * Math.cos(rotAngle) - dy * Math.sin(rotAngle),
+            dx * Math.sin(rotAngle) + dy * Math.cos(rotAngle),
+            z,
+        ];
+    });
+
+    // Estimate half-dimensions from most extreme points
+    const halfL = Math.max(...rotated.map(p => Math.abs(p[0])));
+    const halfW = Math.max(...rotated.map(p => Math.abs(p[1])));
+
+    // Fixed FIFA dimensions
+    const goHW = 9.16;    // goal area half-width (5.5 + 3.66)
+    const goD = 5.5;      // goal area depth
+    const penHW = 20.16;  // penalty area half-width (16.5 + 3.66)
+    const penD = 16.5;    // penalty area depth
+    const penSpot = 11;   // penalty spot from goal line
+    const circleR = 9.15; // centre circle radius
+    const arcHalf = Math.sqrt(90.75); // where arc crosses penalty area line (~7.31)
+
+    // Expected (x, y) for each semantic index 0–30 in the rotated/centred frame
+    const expected: [number, number][] = [
+        [-halfL,          -halfW ],  // 0  lower-left corner
+        [-halfL,          -penHW ],  // 1  left goal line, pen area lower
+        [-halfL,          -goHW  ],  // 2  left goal line, goal area lower
+        [-halfL,          +goHW  ],  // 3  left goal line, goal area upper
+        [-halfL,          +penHW ],  // 4  left goal line, pen area upper
+        [-halfL,          +halfW ],  // 5  upper-left corner
+        [-halfL + goD,    +goHW  ],  // 6  goal area far upper
+        [-halfL + goD,    -goHW  ],  // 7  goal area far lower
+        [-halfL + penSpot, 0     ],  // 8  left penalty spot
+        [-halfL + penD,   +penHW ],  // 9  pen area far upper
+        [-halfL + penD,   +arcHalf],  // 10 upper arc point
+        [-halfL + penD,   -arcHalf],  // 11 lower arc point
+        [-halfL + penD,   -penHW ],  // 12 pen area far lower
+        [0,               -halfW ],  // 13 lower touchline at halfline
+        [0,               -circleR], // 14 lower circle
+        [0,               0      ],  // 15 centre point
+        [0,               +circleR], // 16 upper circle
+        [0,               +halfW ],  // 17 upper touchline at halfline
+        [+halfL - penD,   +penHW ],  // 18 right pen area far upper
+        [+halfL - penD,   +arcHalf],  // 19 upper right arc point
+        [+halfL - penD,   -arcHalf],  // 20 lower right arc point
+        [+halfL - penD,   -penHW ],  // 21 right pen area far lower
+        [+halfL - penSpot, 0     ],  // 22 right penalty spot
+        [+halfL - goD,    +goHW  ],  // 23 right goal area far upper
+        [+halfL - goD,    -goHW  ],  // 24 right goal area far lower
+        [+halfL,          -halfW ],  // 25 lower-right corner
+        [+halfL,          -penHW ],  // 26 right goal line, pen area lower
+        [+halfL,          -goHW  ],  // 27 right goal line, goal area lower
+        [+halfL,          +goHW  ],  // 28 right goal line, goal area upper
+        [+halfL,          +penHW ],  // 29 right goal line, pen area upper
+        [+halfL,          +halfW ],  // 30 upper-right corner
+    ];
+
+    const used = new Set<number>();
+    const result: number[][] = new Array(n);
+
+    for (let i = 0; i < n; i++) {
+        const position = expected[i];
+        let nearestDistance = Infinity;
+        let searchedPointOrd = -1;
+        for (let y = 0; y < n; y++) {
+            if (used.has(y)) continue;
+            const point = rotated[y];
+            const distance = (point[0] - position[0]) ** 2 + (point[1] - position[1]) ** 2
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                searchedPointOrd = y;
+            }
+        }
+        used.add(searchedPointOrd);
+        result[i] = rawPoints[searchedPointOrd];
+    }
+
+    // checks if sides are not swaped
+    const p8 = result[8];
+    const rotX8 = (p8[0] - cx) * Math.cos(rotAngle) - (p8[1] - cy) * Math.sin(rotAngle);
+    if (rotX8 > 0) {
+        const swaps = [
+            [0, 30], [1, 29], [2, 28], [3, 27], [4, 26], [5, 25],
+            [6, 24], [7, 23], [8, 22],
+            [9, 21], [10, 20], [11, 19], [12, 18],
+            [13, 17], [14, 16],
+        ];
+        for (const [a, b] of swaps) {
+            [result[a], result[b]] = [result[b], result[a]];
+        }
+    }
+
+    return result;
+}
 
 export function transformPoints(mainPoints: number[][], secondaryPoints?: number[][]) {
     const transformedPoints1: number[][] = [];
