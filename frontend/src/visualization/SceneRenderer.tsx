@@ -115,6 +115,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             mesh.position.x = planeData.centroid[0];
             mesh.position.y = planeData.centroid[1];
             mesh.position.z = planeData.centroid[2];
+            mesh.userData.excludeFromTopView = true;
             if (showPlanes) scene.add(mesh);
         }
 
@@ -273,6 +274,7 @@ const SceneRenderer: React.FC<SceneRendererProps> = ({
             shiftedPoints.forEach(([x, y, _]) => {
                 const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
                 sphere.position.set(x, getInterpolatedHeight(x, y) * zMultiplier, y);
+                sphere.userData.excludeFromTopView = true;
                 scene.add(sphere);
             });
         }
@@ -353,7 +355,6 @@ export const exportTopViewImages = async (
 
     const {
         scene,
-        renderer,
         shiftedPoints,
         getInterpolatedHeight,
         zMultiplier,
@@ -509,6 +510,9 @@ export const exportTopViewImages = async (
 
     const originalVisible = smoothMesh.visible;
 
+    const excluded = scene.children.filter((o: { userData: { excludeFromTopView: any; }; }) => o.userData.excludeFromTopView);
+    excluded.forEach((o: { visible: boolean; }) => { o.visible = false; });
+
     scene.add(smoothMesh);
 
     smoothMesh.visible = true;
@@ -523,5 +527,6 @@ export const exportTopViewImages = async (
 
     scene.remove(exportLight);
     smoothMesh.visible = originalVisible;
+    excluded.forEach((o: { visible: boolean; }) => { o.visible = true; });
     exportRenderer.dispose();
 };
