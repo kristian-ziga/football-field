@@ -149,18 +149,21 @@ export const useAppStorage = () => {
 
 export function identifyPoints(rawPoints: number[][]): number[][] {
     const n = 31;
-    const pts = rawPoints.slice(0, n);
+    const sliced = rawPoints.slice(0, n);
+    const posXCount = sliced.slice(0, 13).filter(p => p[0] > 0).length;
+    const pts = posXCount > 6 ? sliced.map(([x, y, z]) => [-x, -y, z]) : sliced;
 
-    // 2D PCA on x, y to find the long axis of the pitch
     const pca = new PCA(pts.map(([x, y]) => [x, y]));
     const eigenvalues = pca.getEigenvalues();
     const eigenvectors = pca.getEigenvectors();
-    const largestIdx = eigenvalues.indexOf(Math.max(...eigenvalues));
-    const pc1x = eigenvectors.get(0, largestIdx);
-    const pc1y = eigenvectors.get(1, largestIdx);
 
-    // Rotate so long axis aligns with x-axis
-    const rotAngle = -Math.atan2(pc1y, pc1x);
+    const smallestIdx = eigenvalues.indexOf(Math.min(...eigenvalues));
+    const pc2x = eigenvectors.get(0, smallestIdx);
+    const pc2y = eigenvectors.get(1, smallestIdx);
+
+    // Same formula as original rotateField, aligns short axis with y-axis
+    const angle = Math.atan2(pc2y, pc2x);
+    const rotAngle = Math.PI / 2 - angle;
     const cx = pts.reduce((s, p) => s + p[0], 0) / n;
     const cy = pts.reduce((s, p) => s + p[1], 0) / n;
 
@@ -239,10 +242,10 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
             }
         }
         used.add(searchedPointOrd);
-        result[i] = rawPoints[searchedPointOrd];
+        result[i] = pts[searchedPointOrd];
     }
 
-    // checks if sides are not swaped
+    // checks if sides are not swapped
     const p8 = result[8];
     const rotX8 = (p8[0] - cx) * Math.cos(rotAngle) - (p8[1] - cy) * Math.sin(rotAngle);
     if (rotX8 > 0) {
@@ -286,7 +289,8 @@ export function transformPoints(mainPoints: number[][], secondaryPoints?: number
         transformedPoints2.push([x, y, z - middle_point_height])
     })
 
-    transformedPoints3 = rotateField(transformedPoints2, transformedPoints2[13], transformedPoints1[17]);
+    transformedPoints3 = rotateField(transformedPoints2, transformedPoints2[13], transformedPoints2[17]);
+
     return transformedPoints3;
 }
 
