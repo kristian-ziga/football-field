@@ -150,7 +150,13 @@ export const useAppStorage = () => {
 export function identifyPoints(rawPoints: number[][]): number[][] {
     const n = 31;
     const sliced = rawPoints.slice(0, n);
-    const posXCount = sliced.slice(0, 13).filter(p => p[0] > 0).length;
+
+    // Use the centroid of all 31 points as the reference centre before the orientation check.
+    const meanX = sliced.reduce((s, p) => s + p[0], 0) / n;
+    const meanY = sliced.reduce((s, p) => s + p[1], 0) / n;
+    const centeredForCheck = sliced.map(([x, y, z]) => [x - meanX, y - meanY, z]);
+    
+    const posXCount = centeredForCheck.slice(0, 13).filter(p => p[0] > 0).length;
     const pts = posXCount > 6 ? sliced.map(([x, y, z]) => [-x, -y, z]) : sliced;
 
     const pca = new PCA(pts.map(([x, y]) => [x, y]));
