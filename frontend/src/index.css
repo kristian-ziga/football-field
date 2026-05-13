@@ -2,6 +2,8 @@
 html, body, #root {
     background-color: #111827;
     color: white;
+    height: 100%;
+    overflow: hidden;
 }
 
 * {

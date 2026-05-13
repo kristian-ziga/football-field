@@ -40,7 +40,7 @@ export default function FieldMeasurementInstructions() {
                     {ord === 0
                         ? "Put total station somewhere along the red line"
                         : ord === 1
-                            ? "Setup X axis on total station according to map"
+                            ? "Set the origin at the centre point with the x-axis along the pitch length"
                             :  ord === 2
                                 ? "The order in which points must be measured"
                                 : "Measure points according to map"}

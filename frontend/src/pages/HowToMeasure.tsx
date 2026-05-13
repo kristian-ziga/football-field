@@ -12,7 +12,9 @@ export default function HowToMeasure() {
             paddingTop: "5rem",
             paddingBottom: "2rem",
             gap: "2rem",
-            height: "80vh",
+            height: "100vh",
+            boxSizing: "border-box",
+            overflowY: "auto",
         }}>
             <div style={{textAlign: "center", fontSize: "3rem"}}>
                 Always measure points in the middle of the lines
