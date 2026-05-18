@@ -1,4 +1,4 @@
-import {Routes, Route, BrowserRouter} from "react-router-dom";
+import {Routes, Route, HashRouter} from "react-router-dom";
 import Home from "./pages/Home";
 import Logo from "./components/logo.tsx";
 import StartOrContinue from "./pages/StartOrContinue.tsx";
@@ -16,7 +16,7 @@ import FinalValidation from "./pages/FinalValidation.tsx";
 export default function App() {
     return (
         <AppStorageProvider>
-            <BrowserRouter>
+            <HashRouter>
                 <Logo />
                 <Routes>
                     <Route path="/" element={<Home />} />
@@ -31,7 +31,7 @@ export default function App() {
                     <Route path="/measurementValidation" element={<MeasurementValidation />} />
                     <Route path="/finalValidation" element={<FinalValidation />} />
                 </Routes>
-            </BrowserRouter>
+            </HashRouter>
         </AppStorageProvider>
     );
 }
