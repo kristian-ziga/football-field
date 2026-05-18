@@ -59,7 +59,7 @@ export function secondValue(line: LineValidation): string {
     if (line.name.includes("Point")) {
         if (line.angleOK)
             return "Angle with the middle of the goal line: Valid"
-        return `Angle with the middle of the goal line: Invalid, Out of tolerance by ${(line.angleOverMargin).toFixed(2)}°`
+        return `Angle with the middle of the goal line: Invalid, Out of tolerance by ${(-line.angleOverMargin).toFixed(2)}°`
     }
 
     if (line.name.includes("Centre Circle")) {
@@ -80,7 +80,7 @@ export function secondValue(line: LineValidation): string {
 
     if (line.angleOK)
         return "Angle: Valid"
-    return `Angle: Invalid, Out of tolerance by ${(line.angleOverMargin).toFixed(2)}°` 
+    return `Angle: Invalid, Out of tolerance by ${(-line.angleOverMargin).toFixed(2)}°`
 }
 
 export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValidation): string {
@@ -92,7 +92,7 @@ export function touchlineValue(line: LineValidation, lineWidthMiddle?: LineValid
 
     res += line.angleOK 
         ? ", Angle: Valid\n" 
-        : `, Angle: Invalid, Out of tolerance. Angle: ${line.angleOverMargin.toFixed(2)}°\n`;
+        : `, Angle: Invalid, Out of tolerance. Angle: ${(-line.angleOverMargin).toFixed(2)}°\n`;
 
     if (lineWidthMiddle) {
         res += lineWidthMiddle.lengthOK 
@@ -192,7 +192,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             angle = Math.atan2(Math.abs(dx), Math.abs(dy));
         }
 
-        return ((angle * (180 / Math.PI)) * 1000) / 1000;
+        return Math.round(angle * (180 / Math.PI) * 100) / 100;
     }
 
     function angleOverMargin(angle: number, tolerance: number): number {
@@ -202,7 +202,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     }
 
     function isAngleWithinMargin(angle: number, tolerance: number): boolean {
-        return Math.abs((angle * 1000) / 1000) <= tolerance;
+        return Math.round(Math.abs(angle) * 100) / 100 <= tolerance;
     }
 
     const resultOfLineValidation: LineValidation[] = [];
@@ -461,8 +461,8 @@ export default function MeasurementValidation() {
                 open={true}               
                 sx={{
                     "& .MuiPaper-root": {
-                        backgroundColor: "#111827",
-                        color: "white",
+                        backgroundColor: "white",
+                        color: "black",
                         padding: "1rem"
                     },
                 }}
@@ -470,7 +470,7 @@ export default function MeasurementValidation() {
                 <DialogTitle
                         sx={{
                             fontSize: "clamp(1.2rem, 10vw, 2.2rem)",
-                            color: "white",
+                            color: "black",
                             textAlign: "center",
                         }}
                     >
@@ -513,7 +513,9 @@ export default function MeasurementValidation() {
             justifyContent: "space-evenly",
             paddingBottom: "3rem",
             gap: "clamp(0.5rem, 5vh, 2.5rem)",
-            height: "95vh"}}>
+            height: "100vh",
+            boxSizing: "border-box",
+            overflowY: "auto"}}>
             <div style={{display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center"}}>
                 <div style={{textAlign: "center", fontSize: "clamp(1.2rem, 8vw, 3rem)",}}>
                    Measurement Validation
@@ -530,7 +532,8 @@ export default function MeasurementValidation() {
                             : "1fr 1fr",
                         gap: "0.5rem 2rem",
                         maxWidth: window.innerWidth < 850 ? "100vw" : "75vw",
-                        backgroundColor: "gray",
+                        backgroundColor: "white",
+                        color: "black",
                         padding: "1rem",
                         fontSize: "clamp(1.0rem, 6vw, 2.2rem)",
                     }}
@@ -591,7 +594,7 @@ export default function MeasurementValidation() {
                                     <span
                                         style={{
                                             fontSize: "1.2rem",
-                                            color: isOutOfTolerance ? "#fca5a5" : "#e5e4e4",
+                                            color: isOutOfTolerance ? "#b91c1c" : "#374151",
                                             marginLeft: "1.8rem",
                                             whiteSpace: "pre-line",
                                         }}

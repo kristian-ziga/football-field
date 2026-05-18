@@ -17,8 +17,8 @@ export default function FinalValidation() {
                 open={true}               
                 sx={{
                     "& .MuiPaper-root": {
-                        backgroundColor: "#111827",
-                        color: "white",
+                        backgroundColor: "white",
+                        color: "black",
                         padding: "1rem"
                     },
                 }}
@@ -26,7 +26,7 @@ export default function FinalValidation() {
                 <DialogTitle
                         sx={{
                             fontSize: "clamp(1.2rem, 10vw, 2.2rem)",
-                            color: "white",
+                            color: "black",
                             textAlign: "center",
                         }}
                     >
@@ -132,7 +132,7 @@ export default function FinalValidation() {
 
         pdf.setFont("times", "bold");
         pdf.setFontSize(30);
-        pdf.text("FIFA Standard Validation", pageWidth / 2, y, { align: "center" });
+        pdf.text("Pitch Compliance Report", pageWidth / 2, y, { align: "center" });
         y += 15;
 
         if (topViewImage || topViewHeatmapImage) {
@@ -185,8 +185,11 @@ export default function FinalValidation() {
         if (issues.length > 0) {
             drawSectionTitle("Line Validation Issues");
             for (const issue of issues) {
-                const textLines = pdf.splitTextToSize(issue.statusText, contentWidth - 10);
-                const cardHeight = 10 + textLines.length * 1 + 6;
+                const textLineHeight = 6;
+                pdf.setFont("times", "normal");
+                pdf.setFontSize(14);
+                const textLines = pdf.splitTextToSize(issue.statusText, contentWidth - 8);
+                const cardHeight = 14 + textLines.length * textLineHeight + 6;
 
                 ensureSpace(cardHeight);
 
@@ -202,7 +205,7 @@ export default function FinalValidation() {
                 pdf.setFont("times", "normal");
                 pdf.setFontSize(14);
                 pdf.setTextColor(185, 28, 28);
-                drawWrappedText(issue.statusText, margin + 4, y + 14, contentWidth - 8);
+                drawWrappedText(issue.statusText, margin + 4, y + 14, contentWidth - 8, textLineHeight);
 
                 y += cardHeight + 4;
             }
@@ -306,7 +309,7 @@ export default function FinalValidation() {
         { label: "International Standard (90~120x45~90)", invalid: !isIfabStandardized() }
     ];
 
-    const statusColor = (isInvalid: boolean) => isInvalid ? "#fca5a5" : "#86efac";
+    const statusColor = (isInvalid: boolean) => isInvalid ? "#b91c1c" : "#15803d";
 
     return (
         <div style={{ display: "flex",
@@ -314,16 +317,19 @@ export default function FinalValidation() {
             justifyContent: "space-evenly",
             paddingBottom: "3rem",
             gap: "clamp(0.5rem, 5vh, 2.5rem)",
-            height: "95vh"}}>
+            height: "100vh",
+            boxSizing: "border-box",
+            overflowY: "auto"}}>
 
             <div style={{display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center"}}>
                 <div style={{textAlign: "center", fontSize: "clamp(1.2rem, 8vw, 3rem)",}}>
-                    FIFA standard validation
+                    Pitch Compliance Report
                 </div>
                 <div
                     style={{
                             maxWidth: window.innerWidth < 850 ? "100vw" : "75vw",
-                            backgroundColor: "gray",
+                            backgroundColor: "white",
+                        color: "black",
                             padding: "1rem",
                             fontSize: "clamp(1.0rem, 6vw, 2.2rem)"
                         }}>
@@ -415,7 +421,7 @@ export default function FinalValidation() {
                                         <span
                                             style={{
                                                 fontSize: "1.2rem",
-                                                color: isOutOfTolerance ? "#fca5a5" : "#e5e4e4",
+                                                color: isOutOfTolerance ? "#b91c1c" : "#374151",
                                                 marginLeft: "1.8rem",
                                                 whiteSpace: "pre-line",
                                             }}
