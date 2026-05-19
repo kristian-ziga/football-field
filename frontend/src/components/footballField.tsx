@@ -74,9 +74,6 @@ export default function FootballField({ ord }: { ord: number }) {
             ctx.fillRect(i * segmentWidth * 2 + xMove, yMove, segmentWidth - 1, height);
         }
 
-        // ctx.fillStyle = "#ff0000";
-        // ctx.fillRect(0, height / 2, width, 0.5);
-
         ctx.fillStyle = "#ffffff";
         const lineWidth = Math.min(width, height) * 0.04;
 
@@ -111,8 +108,8 @@ export default function FootballField({ ord }: { ord: number }) {
         ctx.ellipse(
             xMove + width * 0.142,
             yMove + height / 2,
-            Math.min(width, height) * 0.1 ,  // polomer X (šírka)
-            Math.min(width, height) * 0.15,  // polomer Y (výška) — väčší = ovál
+            Math.min(width, height) * 0.1 ,  
+            Math.min(width, height) * 0.15, 
             0,
             -Math.PI / 2,
             Math.PI / 2
@@ -139,8 +136,8 @@ export default function FootballField({ ord }: { ord: number }) {
         ctx.ellipse(
             xMove + width * 0.858,
             yMove + height / 2,
-            Math.min(width, height) * 0.1 ,  // polomer X (šírka)
-            Math.min(width, height) * 0.15,  // polomer Y (výška) — väčší = ovál
+            Math.min(width, height) * 0.1 ,  
+            Math.min(width, height) * 0.15, 
             0,
             Math.PI / 2,
             -Math.PI / 2

@@ -16,15 +16,15 @@ export default function Camera() {
         // Start at top-left
         ctx.moveTo(p1.x + radius, p1.y);
 
-        // Top edge → top-right
+        // Top edge to top-right
         ctx.lineTo(p2.x - radius, p2.y);
         ctx.quadraticCurveTo(p2.x, p2.y, p2.x, p2.y + radius);
 
-        // Right side → bottom tip
+        // Right side to bottom tip
         ctx.lineTo(p3.x + radius, p3.y);
         ctx.quadraticCurveTo(p3.x, p3.y, p3.x - radius, p3.y);
 
-        // Left side → back to top-left
+        // Left side to back to top-left
         ctx.lineTo(p1.x, p1.y + radius);
         ctx.quadraticCurveTo(p1.x, p1.y, p1.x + radius, p1.y);
 

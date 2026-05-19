@@ -150,8 +150,8 @@ export default function InteractiveField({ lineValidations }: InteractiveFootbal
         ctx.ellipse(
             xMove + width * 0.858,
             yMove + height / 2,
-            Math.min(width, height) * 0.1 ,  // šírka
-            Math.min(width, height) * 0.15,  // výška = ovál
+            Math.min(width, height) * 0.1 ,
+            Math.min(width, height) * 0.15,
             0,
             Math.PI / 2,
             -Math.PI / 2

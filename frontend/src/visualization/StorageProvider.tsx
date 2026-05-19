@@ -151,7 +151,7 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
     const n = 31;
     const sliced = rawPoints.slice(0, n);
 
-    // centre on centroid before orientation check — robust to any instrument origin
+    // centre on centroid before orientation check
     const meanX = sliced.reduce((s, p) => s + p[0], 0) / n;
     const meanY = sliced.reduce((s, p) => s + p[1], 0) / n;
     const centeredForCheck = sliced.map(([x, y, z]) => [x - meanX, y - meanY, z]);
@@ -187,14 +187,14 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
     const halfL = Math.max(...rotated.map(p => Math.abs(p[0])));
     const halfW = Math.max(...rotated.map(p => Math.abs(p[1])));
 
-    // Fixed FIFA dimensions
+    // fixed FIFA dimensions
     const goHW = 9.16;    // goal area half-width (5.5 + 3.66)
     const goD = 5.5;      // goal area depth
     const penHW = 20.16;  // penalty area half-width (16.5 + 3.66)
     const penD = 16.5;    // penalty area depth
     const penSpot = 11;   // penalty spot from goal line
     const circleR = 9.15; // centre circle radius
-    const arcHalf = Math.sqrt(90.75); // where arc crosses penalty area line (~7.31)
+    const arcHalf = Math.sqrt(90.75); // where arc crosses penalty area line (approx. 7.31)
 
     // expected positions for each semantic index 0–30
     const expected: [number, number][] = [
