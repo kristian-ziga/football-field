@@ -16,18 +16,18 @@ export default function Visualization() {
     const line_order: number[][] = [
         [4, 9], [1, 12], [2, 7], [3, 6], [0, 13], [13, 25], [5, 17], [17, 30],
         [18, 29], [21, 26], [24, 27], [23, 28],
-        // Obvod ihriska
+        // pitch outline
         [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],
         [30, 29], [29, 28], [28, 27], [27, 26], [26, 25],
-        // Stredová čiara
+        // halfway line
         [13, 14], [14, 15], [15, 16], [16, 17],
-        // Ľavé bránkové územie (malé)
+        // left goal area
         [6, 7],
-        // Ľavé pokutové územie (veľké)
+        // left penalty area
         [9, 10], [10, 11], [11, 12],
-        // Pravé bránkové územie (malé)
+        // right goal area
         [23, 24],
-        // Pravé pokutové územie (veľké)
+        // right penalty area
         [18, 19], [19, 20], [20, 21],
     ];
 

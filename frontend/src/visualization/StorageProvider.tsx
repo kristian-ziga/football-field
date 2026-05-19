@@ -151,7 +151,7 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
     const n = 31;
     const sliced = rawPoints.slice(0, n);
 
-    // Use the centroid of all 31 points as the reference centre before the orientation check.
+    // centre on centroid before orientation check — robust to any instrument origin
     const meanX = sliced.reduce((s, p) => s + p[0], 0) / n;
     const meanY = sliced.reduce((s, p) => s + p[1], 0) / n;
     const centeredForCheck = sliced.map(([x, y, z]) => [x - meanX, y - meanY, z]);
@@ -167,13 +167,13 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
     const pc2x = eigenvectors.get(0, smallestIdx);
     const pc2y = eigenvectors.get(1, smallestIdx);
 
-    // Same formula as original rotateField, aligns short axis with y-axis
+    // aligns short axis with y-axis
     const angle = Math.atan2(pc2y, pc2x);
     const rotAngle = Math.PI / 2 - angle;
     const cx = pts.reduce((s, p) => s + p[0], 0) / n;
     const cy = pts.reduce((s, p) => s + p[1], 0) / n;
 
-    // Temporarily rotate and centre all points for identification only
+    // rotate and centre for identification only — not stored
     const rotated = pts.map(([x, y, z]) => {
         const dx = x - cx, dy = y - cy;
         return [
@@ -183,7 +183,7 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
         ];
     });
 
-    // Estimate half-dimensions from most extreme points
+    // half-dimensions from extreme points
     const halfL = Math.max(...rotated.map(p => Math.abs(p[0])));
     const halfW = Math.max(...rotated.map(p => Math.abs(p[1])));
 
@@ -196,7 +196,7 @@ export function identifyPoints(rawPoints: number[][]): number[][] {
     const circleR = 9.15; // centre circle radius
     const arcHalf = Math.sqrt(90.75); // where arc crosses penalty area line (~7.31)
 
-    // Expected (x, y) for each semantic index 0–30 in the rotated/centred frame
+    // expected positions for each semantic index 0–30
     const expected: [number, number][] = [
         [-halfL,          -halfW ],  // 0  lower-left corner
         [-halfL,          -penHW ],  // 1  left goal line, pen area lower
@@ -295,7 +295,7 @@ export function transformPoints(mainPoints: number[][], secondaryPoints?: number
         transformedPoints2.push([x, y, z - middle_point_height])
     })
 
-    transformedPoints3 = rotateField(transformedPoints2, transformedPoints2[13], transformedPoints2[17]);
+    transformedPoints3 = rotateField(transformedPoints2, transformedPoints2[17], transformedPoints2[13]);
 
     return transformedPoints3;
 }

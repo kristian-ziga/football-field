@@ -208,7 +208,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     const resultOfLineValidation: LineValidation[] = [];
 
     function leftLineHeightAproximation(x: number): number {
-        // approximation of height of left line based on x coordinate, because of different ranges
+        // linear interpolation of elevation between left penalty point and centre point
         const leftPenaltyPoint = linesToValidate.find(line => line.name === "Left Penalty Point");
         const centrePoint = linesToValidate.find(line => line.name === "Centre Point");
         if (!leftPenaltyPoint || !centrePoint) return 0;
@@ -227,7 +227,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
     }
 
     function rightLineHeightAproximation(x: number): number {
-        // approximation of height of right line based on x coordinate, because of different ranges
+        // linear interpolation of elevation between right penalty point and centre point
         const rightPenaltyPoint = linesToValidate.find(line => line.name === "Right Penalty Point");
         const centrePoint = linesToValidate.find(line => line.name === "Centre Point");
         if (!rightPenaltyPoint || !centrePoint) return 0;
@@ -245,7 +245,7 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
         return z1 + t * (z2 - z1);
     }
     
-    // length and angle naming is mainly for straight lines, in points or other situations they may be used for other purpose 
+    // length/angle fields are reused for different purposes depending on element type
     for (let i = 0; i < linesToValidate.length; i++) {
         const line = linesToValidate[i];
 
@@ -299,9 +299,8 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
             continue;
         }   
 
-        // checks how of is the middle point in touchlines
+        // validates midpoint position along touchline
         if (line.name.includes("Touchline With Middle")) {
-            // how much off is middle point from middle of circle defined by two outer points
             const middle = [(mainPoints[line.points[1]][0] + mainPoints[line.points[2]][0]) / 2, (mainPoints[line.points[1]][1] + mainPoints[line.points[2]][1]) / 2 ];
             const xAxisDiff = diffInLengths(mainPoints[line.points[0]][0], middle[0]);
             const yAxisDiff = diffInLengths(mainPoints[line.points[0]][1], middle[1]);
@@ -371,9 +370,6 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                 }
 
                 desiredLength = 18.32;
-                //const ddiffLength = diffInLengths(length + 0.12, desiredLength)
-                //console.log(line.name, length, desiredLength, ddiffLength)
-                //console.log(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
             } else if (line.name.includes("Penalty Area Left Line") || line.name.includes("Penalty Area Right Line")) {
                 if (line.name.includes("Left Penalty Area")) {
                     const x = (mainPoints[line.points[2]][0] + mainPoints[line.points[3]][0]) / 2;
@@ -388,13 +384,10 @@ export function getValidations(mainPoints: number[][]): LineValidation[] {
                 }
 
                 desiredLength = 40.32;
-                //const ddiffLength = diffInLengths(length + 0.12, desiredLength)
-                //console.log(line.name, length, desiredLength, ddiffLength)
-                //console.log(mainPoints[line.points[0]][0], mainPoints[line.points[0]][1], mainPoints[line.points[1]][0], mainPoints[line.points[1]][1])
             } 
         
             const diffLength = diffInLengths(length + 0.12, desiredLength)
-            const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000; // because of different ranges and possible bigger errors in longer lines and also slope, we increase tolerance for them, this is not ideal but works for now
+            const newLengthTolerance = Math.round((lengthTolerance + 0.02) * 1000) / 1000; // +2cm for slope-induced error on longer lines
             resultOfLineValidation.push({name: line.name, lengthOK: isLengthWithinMargin(diffLength, newLengthTolerance), lengthOverMargin: lengthOverMargin(diffLength, newLengthTolerance), 
                 angleOK: isAngleWithinMargin(angle, angleTolerance), angleOverMargin: angleOverMargin(angle, angleTolerance), enabled: true});
             continue;
@@ -409,9 +402,6 @@ export default function MeasurementValidation() {
     const navigate = useNavigate();
     const mainPoints = getMainPoints();
     const lineValidations = getValidations(mainPoints);
-    //console.log(mainPoints)
-
-    // call function
     useEffect(() => {
         if (!sceneData) return;
         exportTopViewImages(lineValidations, sceneData, setTopViewImage, setTopViewHeatmapImage);
