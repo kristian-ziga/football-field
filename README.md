@@ -35,6 +35,8 @@ cd frontend && npm install
 
 ### Run in development mode
 
+From the project root directory:
+
 ```bash
 npm run dev
 ```
