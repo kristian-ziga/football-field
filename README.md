@@ -23,7 +23,7 @@ Built as a bachelor's thesis at Masaryk University (MUNI).
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - npm
 
 ### Install dependencies
