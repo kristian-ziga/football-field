@@ -66,9 +66,9 @@ The first 31 points must be the standard pitch reference points (labels 1–30 a
 ```
 football-field/
 ├── electron.js          # Electron main process
+├── data/                # Sample measurement files
 ├── frontend/
 │   ├── src/
-│   │   ├── assets/      # Sample measurement files
 │   │   ├── components/  # Reusable UI components
 │   │   ├── pages/       # Application pages
 │   │   └── visualization/  # 3D scene, storage, transforms
