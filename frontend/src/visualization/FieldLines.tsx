@@ -13,8 +13,8 @@ export function createLine(
     let [x2, y2] = end;
 
     if (needsLonger) {
-        x1 += 0.4;
-        x2 -= 0.4;
+        x1 -= 0.4;
+        x2 += 0.4;
     }
 
     const width = 0.8;
