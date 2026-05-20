@@ -45,6 +45,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Run as desktop app
 
+From the project root directory:
+
 ```bash
 npm start
 ```
